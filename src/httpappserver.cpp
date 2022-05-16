@@ -1,12 +1,18 @@
 #include <httpappserver.hpp>
 
+/// Set _WIN32_WINNT to the default for current Windows SDK
+#if defined(_WIN32) && !defined(_WIN32_WINNT)
+#include <SDKDDKVer.h>
+#endif
+
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
-#include <boost/asio/experimental/as_tuple.hpp>
+#include <boost/asio/experimental/awaitable_operators.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/redirect_error.hpp>
+#include <boost/asio/signal_set.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 
@@ -14,6 +20,8 @@
 
 namespace httpappserver {
 
+namespace asio = boost::asio;
+using tcp = asio::ip::tcp;
 namespace beast = boost::beast;
 namespace http = beast::http;
 
@@ -55,11 +63,11 @@ asio::awaitable<void> session(tcp::socket socket)
 asio::awaitable<void> session_ec(tcp::socket socket)
 {
     beast::error_code ec;
-    beast::flat_buffer buffer;
 
     for (;;) {
         http::request<http::string_body> req;
         {
+            beast::flat_buffer buffer;
             co_await http::async_read(
                 socket, buffer, req,
                 asio::redirect_error(asio::use_awaitable, ec));
@@ -101,9 +109,23 @@ asio::awaitable<void> listen(tcp::endpoint endpoint)
         auto socket = co_await acceptor.async_accept(asio::use_awaitable);
 
         co_spawn(
-            acceptor.get_executor(), session_ec(std::move(socket)),
+            acceptor.get_executor(), session(std::move(socket)),
             asio::detached);
     }
+}
+
+asio::awaitable<void> watchdog()
+{
+    asio::signal_set signals{
+        co_await asio::this_coro::executor, SIGINT, SIGTERM};
+    co_await signals.async_wait(asio::use_awaitable);
+}
+
+asio::awaitable<void> run_server(tcp::endpoint endpoint)
+{
+    using namespace asio::experimental::awaitable_operators;
+
+    co_await(listen(std::move(endpoint)) || watchdog());
 }
 
 int run(std::string_view host, std::string_view port)
@@ -113,7 +135,7 @@ int run(std::string_view host, std::string_view port)
     auto endpoint =
         *tcp::resolver(ctx).resolve(host, port, tcp::resolver::passive);
 
-    co_spawn(ctx, listen(std::move(endpoint)), [](auto ptr) {
+    co_spawn(ctx, run_server(std::move(endpoint)), [](auto ptr) {
         // Propagate exception from the coroutine
         if (ptr) {
             std::rethrow_exception(ptr);
