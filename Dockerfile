@@ -39,6 +39,7 @@ RUN cmake --build . --config Release
 
 # Install 
 RUN cmake --install . --config Release
+RUN strip /usr/local/bin/cli
 
 FROM scratch as runtime
 

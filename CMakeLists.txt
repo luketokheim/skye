@@ -6,7 +6,7 @@ project(httpappserver CXX)
 
 add_library(
     httpappserver
-    src/server.cpp)
+    src/httpappserver.cpp)
 
 target_compile_features(httpappserver PUBLIC cxx_std_20)
 target_include_directories(httpappserver PUBLIC include)
