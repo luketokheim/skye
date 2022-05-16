@@ -106,12 +106,12 @@ asio::awaitable<void> listen(tcp::endpoint endpoint)
     }
 }
 
-int run(std::string_view host, std::string_view service)
+int run(std::string_view host, std::string_view port)
 {
     asio::io_context ctx;
 
     auto endpoint =
-        *tcp::resolver(ctx).resolve(host, service, tcp::resolver::passive);
+        *tcp::resolver(ctx).resolve(host, port, tcp::resolver::passive);
 
     co_spawn(ctx, listen(std::move(endpoint)), [](auto ptr) {
         // Propagate exception from the coroutine
