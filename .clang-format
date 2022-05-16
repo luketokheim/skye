@@ -1,0 +1,33 @@
+BasedOnStyle: LLVM
+Language: Cpp
+AccessModifierOffset: -4
+AlignAfterOpenBracket: AlwaysBreak
+AlignEscapedNewlines: DontAlign
+AlwaysBreakTemplateDeclarations: true
+AllowShortFunctionsOnASingleLine: None
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+  SplitEmptyFunction: true
+CompactNamespaces: true
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+Cpp11BracedListStyle: true
+FixNamespaceComments: true
+IncludeBlocks: Preserve
+IncludeCategories:
+  # Public project include files
+  - Regex:    '<shadowmocap/?[[:alpha:]_]*.hpp>'
+    Priority: 2
+  # C++ Standard Library
+  - Regex:    '<[[:alpha:]_]+>'
+    Priority: 3
+  # C Standard Library
+  - Regex:    '<[[:alnum:].]+>'
+    Priority: 4
+  # Everything else, third party library headers
+  - Regex:    '.*'
+    Priority: 1
+# IndentAccessModifiers: false
+IndentWidth: 4
+Standard: Cpp11
