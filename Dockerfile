@@ -7,6 +7,7 @@ FROM alpine:latest as builder
 RUN apk update && apk add --no-cache \
     cmake \
     g++ \
+    liburing-dev \
     linux-headers \
     make \
     py-pip
@@ -28,8 +29,8 @@ RUN conan install .. --build=missing
 RUN cmake -B . -S .. \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake \
-    -DCMAKE_CXX_FLAGS="-static-libstdc++ -static" \
-    -DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++ -static"
+    -DENABLE_STANDALONE=ON \
+    -DENABLE_IO_URING=ON
 
 # Build
 RUN cmake --build . --config Release
