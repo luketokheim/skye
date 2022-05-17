@@ -38,11 +38,16 @@ RUN cmake --build . --config Release
 # Run unit tests
 # RUN ctest -C Release
 
-# Install 
+# Install
 RUN cmake --install . --config Release
 RUN strip /usr/local/bin/cli
 
 FROM scratch as runtime
+# FROM alpine:latest as runtime
+
+# RUN apk update && apk add --no-cache \
+#     libstdc++ \
+#     liburing
 
 COPY --from=builder /usr/local/bin/cli /cli
 
