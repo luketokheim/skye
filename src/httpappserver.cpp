@@ -15,6 +15,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 
+// #include <chrono>
 #include <exception>
 
 namespace httpappserver {
@@ -63,7 +64,11 @@ asio::awaitable<void> session(tcp::socket socket)
 
 asio::awaitable<void> session(tcp::socket socket)
 {
-    beast::flat_buffer buffer;
+    // using namespace std::chrono_literals;
+
+    constexpr auto RequestSizeLimit = 1 << 20;
+
+    beast::flat_buffer buffer(RequestSizeLimit);
     beast::error_code ec;
 
     for (;;) {
@@ -108,7 +113,7 @@ asio::awaitable<void> session(tcp::socket socket)
 asio::awaitable<void> listen(tcp::endpoint endpoint)
 {
     tcp::acceptor acceptor{co_await asio::this_coro::executor, endpoint};
-    for (int i = 0; i < 1; ++i) {
+    for (;;) {
         beast::error_code ec;
         auto socket = co_await acceptor.async_accept(
             asio::redirect_error(asio::use_awaitable, ec));
