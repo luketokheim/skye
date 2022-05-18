@@ -1,10 +1,5 @@
 #include <httpmicroservice.hpp>
 
-/// Set _WIN32_WINNT to the default for current Windows SDK
-#if defined(_WIN32) && !defined(_WIN32_WINNT)
-#include <SDKDDKVer.h>
-#endif
-
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
@@ -22,9 +17,11 @@ namespace httpmicroservice {
 namespace asio = boost::asio;
 using tcp = asio::ip::tcp;
 
+constexpr auto kRequestSizeLimit = 1 << 20;
+
 response_type make_response(request_type req)
 {
-    response_type res{http::status::ok, req.version()};
+    response_type res;
     res.set(http::field::content_type, "text/html");
     res.body() = "Hello World!";
 
@@ -33,14 +30,12 @@ response_type make_response(request_type req)
 
 asio::awaitable<void> session(tcp::socket socket, handler_type handler)
 {
-    constexpr auto kRequestSizeLimit = 1 << 20;
-
     boost::beast::flat_buffer buffer(kRequestSizeLimit);
     boost::system::error_code ec;
 
     for (;;) {
         // req = read(...)
-        http::request<http::string_body> req;
+        request_type req;
         co_await http::async_read(
             socket, buffer, req, asio::redirect_error(asio::use_awaitable, ec));
 
@@ -52,7 +47,7 @@ asio::awaitable<void> session(tcp::socket socket, handler_type handler)
             co_return;
         }
 
-        const bool keep_alive = req.keep_alive();
+        auto keep_alive = req.keep_alive();
 
         // res = handler(req)
         auto res = std::invoke(handler, std::move(req));
@@ -77,7 +72,7 @@ asio::awaitable<void> session(tcp::socket socket, handler_type handler)
 
 asio::awaitable<void> listen(tcp::endpoint endpoint, handler_type handler)
 {
-    tcp::acceptor acceptor{co_await asio::this_coro::executor, endpoint};
+    tcp::acceptor acceptor(co_await asio::this_coro::executor, endpoint);
     for (;;) {
         boost::system::error_code ec;
         auto socket = co_await acceptor.async_accept(
