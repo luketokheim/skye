@@ -1,4 +1,4 @@
-#include <httpappserver.hpp>
+#include <httpmicroservice.hpp>
 
 /// Set _WIN32_WINNT to the default for current Windows SDK
 #if defined(_WIN32) && !defined(_WIN32_WINNT)
@@ -18,7 +18,7 @@
 // #include <chrono>
 #include <exception>
 
-namespace httpappserver {
+namespace httpmicroservice {
 
 namespace asio = boost::asio;
 using tcp = asio::ip::tcp;
@@ -156,4 +156,4 @@ int run(std::string_view host, std::string_view port, handler_type handler)
     return 0;
 }
 
-} // namespace httpappserver
+} // namespace httpmicroservice

@@ -6,7 +6,7 @@
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
 
-namespace httpappserver {
+namespace httpmicroservice {
 
 namespace http = boost::beast::http;
 
@@ -18,4 +18,4 @@ response_type make_response(request_type req);
 
 int run(std::string_view host, std::string_view service, handler_type handler);
 
-} // namespace httpappserver
+} // namespace httpmicroservice

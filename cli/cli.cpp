@@ -1,4 +1,4 @@
-#include <httpappserver.hpp>
+#include <httpmicroservice.hpp>
 
 #include <cstdlib>
 #include <iostream>
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
     }
 
     try {
-        using namespace httpappserver;
+        using namespace httpmicroservice;
 
         return run(options->host, options->port, [](auto req) {
             response_type res{http::status::ok, req.version()};
