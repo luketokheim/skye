@@ -8,8 +8,8 @@
 int getenv_port()
 {
     constexpr auto kDefaultPort = 8080;
-    constexpr auto kMinPort = 1 << 10;
-    constexpr auto kMaxPort = 1 << 16;
+    constexpr auto kMinPort = (1 << 10);
+    constexpr auto kMaxPort = (1 << 16) - 1;
 
     // Cloud Run sets the PORT environment variable
     // https://cloud.google.com/run/docs/container-contract#port
@@ -19,7 +19,7 @@ int getenv_port()
     }
 
     try {
-        int port = boost::lexical_cast<int>(port);
+        int port = boost::lexical_cast<int>(env);
         if ((port >= kMinPort) && (port <= kMaxPort)) {
             return port;
         }
