@@ -22,13 +22,10 @@ namespace httpappserver {
 
 namespace asio = boost::asio;
 using tcp = asio::ip::tcp;
-namespace beast = boost::beast;
-namespace http = beast::http;
 
-http::response<http::string_body>
-make_response(http::request<http::string_body> &&req)
+response_type make_response(request_type req)
 {
-    http::response<http::string_body> res{http::status::ok, req.version()};
+    response_type res{http::status::ok, req.version()};
     res.set(http::field::content_type, "text/html");
     res.body() = "Hello World!";
 
@@ -62,8 +59,9 @@ asio::awaitable<void> session(tcp::socket socket)
 
 #else
 
-asio::awaitable<void> session(tcp::socket socket)
+asio::awaitable<void> session(tcp::socket socket, handler_type handler)
 {
+    namespace beast = boost::beast;
     // using namespace std::chrono_literals;
 
     constexpr auto RequestSizeLimit = 1 << 20;
@@ -88,7 +86,7 @@ asio::awaitable<void> session(tcp::socket socket)
         const bool keep_alive = req.keep_alive();
 
         // res = handler(req)
-        auto res = make_response(std::move(req));
+        auto res = std::invoke(handler, std::move(req));
         res.prepare_payload();
         res.keep_alive(keep_alive);
 
@@ -110,11 +108,11 @@ asio::awaitable<void> session(tcp::socket socket)
 
 #endif
 
-asio::awaitable<void> listen(tcp::endpoint endpoint)
+asio::awaitable<void> listen(tcp::endpoint endpoint, handler_type handler)
 {
     tcp::acceptor acceptor{co_await asio::this_coro::executor, endpoint};
     for (;;) {
-        beast::error_code ec;
+        boost::system::error_code ec;
         auto socket = co_await acceptor.async_accept(
             asio::redirect_error(asio::use_awaitable, ec));
         if (ec) {
@@ -122,12 +120,12 @@ asio::awaitable<void> listen(tcp::endpoint endpoint)
         }
 
         co_spawn(
-            acceptor.get_executor(), session(std::move(socket)),
+            acceptor.get_executor(), session(std::move(socket), handler),
             asio::detached);
     }
 }
 
-int run(std::string_view host, std::string_view port)
+int run(std::string_view host, std::string_view port, handler_type handler)
 {
     asio::io_context ctx;
 
@@ -135,7 +133,7 @@ int run(std::string_view host, std::string_view port)
         *tcp::resolver(ctx).resolve(host, port, tcp::resolver::passive);
 
     // Run coroutine to listen on our host:port endpoint
-    co_spawn(ctx, listen(std::move(endpoint)), [&ctx](auto ptr) {
+    co_spawn(ctx, listen(std::move(endpoint), std::move(handler)), [&ctx](auto ptr) {
         // Propagate exception from the coroutine
         if (ptr) {
             std::rethrow_exception(ptr);
