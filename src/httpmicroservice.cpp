@@ -20,11 +20,7 @@ constexpr auto kRequestSizeLimit = 1 << 20;
 
 response_type make_response(request_type req)
 {
-    response_type res;
-    res.set(http::field::content_type, "text/html");
-    res.body() = "Hello World!";
-
-    return res;
+    return response_type(http::status::ok, req.version());
 }
 
 asio::awaitable<void> session(tcp::socket socket, handler_type handler)
@@ -69,6 +65,14 @@ asio::awaitable<void> session(tcp::socket socket, handler_type handler)
     socket.shutdown(tcp::socket::shutdown_send, ec);
 }
 
+void rethrow_exception_ptr(std::exception_ptr ptr)
+{
+    // Propagate exception from a coroutine
+    if (ptr) {
+        std::rethrow_exception(ptr);
+    }
+}
+
 asio::awaitable<void> listen(int port, handler_type handler)
 {
     tcp::endpoint endpoint(tcp::v4(), port);
@@ -82,9 +86,10 @@ asio::awaitable<void> listen(int port, handler_type handler)
             break;
         }
 
+        // Run coroutine to handle one http connection
         co_spawn(
             acceptor.get_executor(), session(std::move(socket), handler),
-            asio::detached);
+            rethrow_exception_ptr);
     }
 }
 
@@ -93,13 +98,7 @@ int run(int port, handler_type handler)
     asio::io_context ctx;
 
     // Run coroutine to listen on our port
-    co_spawn(
-        ctx, listen(port, std::move(handler)), [&ctx](auto ptr) {
-            // Propagate exception from the coroutine
-            if (ptr) {
-                std::rethrow_exception(ptr);
-            }
-        });
+    co_spawn(ctx, listen(port, std::move(handler)), rethrow_exception_ptr);
 
     ctx.run();
 

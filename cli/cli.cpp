@@ -17,7 +17,7 @@ int getenv_port()
     if (env == nullptr) {
         return kDefaultPort;
     }
-    
+
     try {
         int port = boost::lexical_cast<int>(port);
         if ((port >= kMinPort) && (port <= kMaxPort)) {
@@ -29,7 +29,7 @@ int getenv_port()
     return kDefaultPort;
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     try {
         using namespace httpmicroservice;
