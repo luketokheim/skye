@@ -12,20 +12,21 @@ struct cli_options {
 std::optional<cli_options> make_options(int argc, char **argv)
 {
     cli_options options;
-    
-    if (const char* port = std::getenv("PORT")) {
+
+    if (const char *port = std::getenv("PORT")) {
         options.port = port;
     }
 
     for (int i = 1; i < argc; ++i) {
-        std::string_view name(argv[i]);
-        if (name == "--port") {
-            if (++i < argc) {
+        // Options with a required argument
+        if (i + 1 < argc) {
+            std::string_view name{argv[i]};
+            if (name == "--port") {
                 options.port = argv[i];
                 continue;
             }
-        } else if (name == "--host") {
-            if (++i < argc) {
+
+            if (name == "--host") {
                 options.host = argv[i];
                 continue;
             }
@@ -50,15 +51,16 @@ int main(int argc, char **argv)
     }
 
     try {
-        using namespace httpmicroservice;
+        namespace http = boost::beast::http;
 
-        return run(options->host, options->port, [](auto req) {
-            response_type res{http::status::ok, req.version()};
-            res.set(http::field::content_type, "application/json");
-            res.body() = "{\"hello\": \"world\"}";
+        return httpmicroservice::run(
+            options->host, options->port, [](auto req) {
+                response_type res{http::status::ok, req.version()};
+                res.set(http::field::content_type, "application/json");
+                res.body() = "{\"hello\": \"world\"}";
 
-            return res;
-        });
+                return res;
+            });
     } catch (std::exception &e) {
         std::cerr << e.what() << "\n";
     } catch (...) {

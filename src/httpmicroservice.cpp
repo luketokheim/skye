@@ -15,7 +15,6 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 
-// #include <chrono>
 #include <exception>
 
 namespace httpmicroservice {
@@ -32,42 +31,12 @@ response_type make_response(request_type req)
     return res;
 }
 
-#if 0
-
-asio::awaitable<void> session(tcp::socket socket)
-{
-    beast::flat_buffer buffer;
-    for (;;) {
-        http::request<http::string_body> req;
-        co_await http::async_read(socket, buffer, req, asio::use_awaitable);
-
-        const bool keep_alive = req.keep_alive();
-
-        auto res = make_response(std::move(req));
-        res.prepare_payload();
-        res.keep_alive(keep_alive);
-
-        co_await http::async_write(socket, res, asio::use_awaitable);
-
-        if (res.need_eof()) {
-            break;
-        }
-    }
-
-    socket.shutdown(tcp::socket::shutdown_send);
-}
-
-#else
-
 asio::awaitable<void> session(tcp::socket socket, handler_type handler)
 {
-    namespace beast = boost::beast;
-    // using namespace std::chrono_literals;
+    constexpr auto kRequestSizeLimit = 1 << 20;
 
-    constexpr auto RequestSizeLimit = 1 << 20;
-
-    beast::flat_buffer buffer(RequestSizeLimit);
-    beast::error_code ec;
+    boost::beast::flat_buffer buffer(kRequestSizeLimit);
+    boost::system::error_code ec;
 
     for (;;) {
         // req = read(...)
@@ -105,8 +74,6 @@ asio::awaitable<void> session(tcp::socket socket, handler_type handler)
 
     socket.shutdown(tcp::socket::shutdown_send, ec);
 }
-
-#endif
 
 asio::awaitable<void> listen(tcp::endpoint endpoint, handler_type handler)
 {
