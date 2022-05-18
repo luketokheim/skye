@@ -21,6 +21,6 @@ using handler_type = std::function<response_type(request_type)>;
 
 response_type make_response(request_type req);
 
-int run(std::string_view host, std::string_view service, handler_type handler);
+int run(int port, handler_type handler);
 
 } // namespace httpmicroservice

@@ -6,7 +6,6 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/redirect_error.hpp>
-#include <boost/asio/signal_set.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 
@@ -70,8 +69,10 @@ asio::awaitable<void> session(tcp::socket socket, handler_type handler)
     socket.shutdown(tcp::socket::shutdown_send, ec);
 }
 
-asio::awaitable<void> listen(tcp::endpoint endpoint, handler_type handler)
+asio::awaitable<void> listen(int port, handler_type handler)
 {
+    tcp::endpoint endpoint(tcp::v4(), port);
+
     tcp::acceptor acceptor(co_await asio::this_coro::executor, endpoint);
     for (;;) {
         boost::system::error_code ec;
@@ -87,31 +88,18 @@ asio::awaitable<void> listen(tcp::endpoint endpoint, handler_type handler)
     }
 }
 
-int run(std::string_view host, std::string_view port, handler_type handler)
+int run(int port, handler_type handler)
 {
     asio::io_context ctx;
 
-    auto endpoint =
-        *tcp::resolver(ctx).resolve(host, port, tcp::resolver::passive);
-
-    // Run coroutine to listen on our host:port endpoint
-    co_spawn(ctx, listen(std::move(endpoint), std::move(handler)), [&ctx](auto ptr) {
-        // Propagate exception from the coroutine
-        if (ptr) {
-            std::rethrow_exception(ptr);
-        }
-
-        // The listen loop ended, call stop to end the signal handler
-        ctx.stop();
-    });
-
-    // Install a signal handler
-    // SIGINT to handle Ctrl+C
-    // SIGTERM to handle shutdown request from "docker stop" or from Cloud Run
-    // https://docs.docker.com/engine/reference/commandline/stop/
-    // https://cloud.google.com/run/docs/container-contract#instance-shutdown
-    asio::signal_set signals{ctx, SIGINT, SIGTERM};
-    signals.async_wait([&ctx](auto ec, int signo) { ctx.stop(); });
+    // Run coroutine to listen on our port
+    co_spawn(
+        ctx, listen(port, std::move(handler)), [&ctx](auto ptr) {
+            // Propagate exception from the coroutine
+            if (ptr) {
+                std::rethrow_exception(ptr);
+            }
+        });
 
     ctx.run();
 
