@@ -50,7 +50,15 @@ int main(int argc, char **argv)
     }
 
     try {
-        return httpappserver::run(options->host, options->port);
+        using namespace httpappserver;
+
+        return run(options->host, options->port, [](auto req) {
+            response_type res{http::status::ok, req.version()};
+            res.set(http::field::content_type, "application/json");
+            res.body() = "{\"hello\": \"world\"}";
+
+            return res;
+        });
     } catch (std::exception &e) {
         std::cerr << e.what() << "\n";
     } catch (...) {
