@@ -36,7 +36,7 @@ RUN cmake -B . -S .. \
 RUN cmake --build . --config Release
 
 # Run unit tests
-# RUN ctest -C Release
+RUN ctest -C Release
 
 # Install
 RUN cmake --install . --config Release
