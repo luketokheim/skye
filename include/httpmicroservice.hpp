@@ -1,12 +1,17 @@
 #pragma once
 
+/// Set _WIN32_WINNT to the default for current Windows SDK
+#if defined(_WIN32) && !defined(_WIN32_WINNT)
+#include <SDKDDKVer.h>
+#endif
+
 #include <functional>
 #include <string_view>
 
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
 
-namespace httpappserver {
+namespace httpmicroservice {
 
 namespace http = boost::beast::http;
 
@@ -16,6 +21,6 @@ using handler_type = std::function<response_type(request_type)>;
 
 response_type make_response(request_type req);
 
-int run(std::string_view host, std::string_view service, handler_type handler);
+int run(int port, handler_type handler);
 
-} // namespace httpappserver
+} // namespace httpmicroservice

@@ -2,32 +2,32 @@
 # conan generator requires 3.15
 cmake_minimum_required(VERSION 3.15)
 
-project(httpappserver CXX)
+project(httpmicroservice CXX)
 
 add_library(
-    httpappserver
-    src/httpappserver.cpp)
+    httpmicroservice
+    src/httpmicroservice.cpp)
 
-target_compile_features(httpappserver PUBLIC cxx_std_20)
-target_include_directories(httpappserver PUBLIC include)
+target_compile_features(httpmicroservice PUBLIC cxx_std_20)
+target_include_directories(httpmicroservice PUBLIC include)
 
 # g++10 or newer on Linux
 if(CMAKE_COMPILER_IS_GNUCXX)
     find_package(Threads)
-    target_compile_options(httpappserver PUBLIC -fcoroutines)
-    target_link_libraries(httpappserver PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+    target_compile_options(httpmicroservice PUBLIC -fcoroutines)
+    target_link_libraries(httpmicroservice PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 find_package(Boost REQUIRED)
-target_link_libraries(httpappserver PUBLIC Boost::boost)
+target_link_libraries(httpmicroservice PUBLIC Boost::boost)
 
 option(
     ENABLE_STANDALONE
     "Compile standalone app with static linked C/C++"
     OFF)
 if(CMAKE_COMPILER_IS_GNUCXX AND ENABLE_STANDALONE)
-    target_compile_options(httpappserver PUBLIC -static-libstdc++ -static)
-    target_link_options(httpappserver PUBLIC -static-libstdc++ -static)
+    target_compile_options(httpmicroservice PUBLIC -static-libstdc++ -static)
+    target_link_options(httpmicroservice PUBLIC -static-libstdc++ -static)
 endif()
 
 option(
@@ -36,8 +36,11 @@ option(
     OFF)
 if(CMAKE_COMPILER_IS_GNUCXX AND ENABLE_IO_URING)
     target_compile_definitions(
-        httpappserver PUBLIC BOOST_ASIO_HAS_IO_URING BOOST_ASIO_DISABLE_EPOLL)
-    target_link_libraries(httpappserver PUBLIC uring)
+        httpmicroservice
+        PUBLIC
+        BOOST_ASIO_HAS_IO_URING
+        BOOST_ASIO_DISABLE_EPOLL)
+    target_link_libraries(httpmicroservice PUBLIC uring)
 endif()
 
 add_subdirectory(cli)

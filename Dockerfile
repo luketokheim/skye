@@ -1,5 +1,5 @@
 #
-# docker build -t httpappserver-cpp .
+# docker build -t httpmicroservice-cpp .
 #
 FROM alpine:latest as builder
 
@@ -16,10 +16,10 @@ RUN apk update && apk add --no-cache \
 RUN pip install conan && conan profile new default --detect
 
 # Copy repo source code
-COPY . /httpappserver-cpp
+COPY . /source
 
 # Run cmake commands from the build folder
-WORKDIR /httpappserver-cpp/build
+WORKDIR /source/build
 
 # Download dependencies and generate cmake toolchain file
 RUN conan install .. --build=missing
@@ -43,11 +43,6 @@ RUN cmake --install . --config Release
 RUN strip /usr/local/bin/cli
 
 FROM scratch as runtime
-# FROM alpine:latest as runtime
-
-# RUN apk update && apk add --no-cache \
-#     libstdc++ \
-#     liburing
 
 COPY --from=builder /usr/local/bin/cli /cli
 
