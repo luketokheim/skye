@@ -148,18 +148,24 @@ asio::awaitable<void> listen(int port, handler_type handler)
 int run(int port, handler_type handler)
 {
     asio::io_context ctx;
+    
+    run_async(ctx, port, handler);
+    
+    ctx.run();
 
+    return 0;
+}
+
+void run_async(boost::asio::io_context &ctx, int port, handler_type handler)
+{
     // Run coroutine to listen on our port
-    co_spawn(ctx, listen(port, std::move(handler)), [](auto ptr) {
+    co_spawn(
+        ctx.get_executor(), listen(port, std::move(handler)), [](auto ptr) {
         // Propagate exception from the coroutine
         if (ptr) {
             std::rethrow_exception(ptr);
         }
     });
-
-    ctx.run();
-
-    return 0;
 }
 
 } // namespace httpmicroservice
