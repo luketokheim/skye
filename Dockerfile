@@ -35,9 +35,6 @@ RUN cmake -B . -S .. \
 # Build
 RUN cmake --build . --config Release
 
-# Run unit tests
-RUN ctest -C Release
-
 # Install
 RUN cmake --install . --config Release
 RUN strip /usr/local/bin/cli
