@@ -29,14 +29,16 @@ response_type make_response(request_type req)
 struct session_stats {
     int fd = 0;
     int num_request = 0;
-    int bytes_transferred = 0;
+    int bytes_read = 0;
+    int bytes_write = 0;
     std::chrono::steady_clock::duration duration;
 };
 
 std::ostream &operator<<(std::ostream &os, const session_stats &stats)
 {
-    os << "{\"fd\": " << stats.fd << "\"num_request\": " << stats.num_request
-       << ", \"bytes_transferred\": " << stats.bytes_transferred
+    os << "{\"fd\": " << stats.fd << "\", num_request\": " << stats.num_request
+       << ", \"bytes_read\": " << stats.bytes_read
+       << ", \"bytes_write\": " << stats.bytes_write
        << ", \"duration\": " << stats.duration << "}";
     return os;
 }
@@ -62,18 +64,17 @@ asio::awaitable<std::optional<session_stats>> session(
                 socket, buffer, req,
                 asio::redirect_error(asio::use_awaitable, ec));
 
-            // if (ec == http::error::end_of_stream) {
-            //     socket.shutdown(tcp::socket::shutdown_send, ec);
-            //     break;
-            // }
+            if (ec == http::error::end_of_stream) {
+                socket.shutdown(tcp::socket::shutdown_send, ec);
+                break;
+            }
 
             if (ec) {
                 break;
             }
 
             if (stats) {
-                ++stats->num_request;
-                stats->bytes_transferred += bytes_read;
+                stats->bytes_read += bytes_read;
             }
         }
 
@@ -93,7 +94,8 @@ asio::awaitable<std::optional<session_stats>> session(
         }
 
         if (stats) {
-            stats->bytes_transferred += bytes_write;
+            ++stats->num_request;
+            stats->bytes_write += bytes_write;
         }
 
         if (res.need_eof()) {
@@ -126,7 +128,10 @@ asio::awaitable<void> listen(int port, handler_type handler)
 
         // Run coroutine to handle one http connection
         co_spawn(
-            acceptor.get_executor(), session(std::move(socket), handler, {}),
+            acceptor.get_executor(),
+            session(
+                std::move(socket), handler,
+                std::make_optional<session_stats>()),
             [](auto ptr, auto stats) {
                 // Propagate exception from the coroutine
                 if (ptr) {
