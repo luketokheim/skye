@@ -13,7 +13,6 @@
 #include <exception>
 #include <iostream>
 #include <optional>
-#include <thread>
 
 namespace httpmicroservice {
 
@@ -28,7 +27,6 @@ response_type make_response(request_type req)
 }
 
 struct session_stats {
-    std::thread::id tid;
     int fd = 0;
     int num_request = 0;
     int bytes_transferred = 0;
@@ -37,9 +35,8 @@ struct session_stats {
 
 std::ostream &operator<<(std::ostream &os, const session_stats &stats)
 {
-    os << "{\"tid\": " << stats.tid << ", \"fd\": " << stats.fd
-       << ", \"req\": " << stats.num_request
-       << ", \"bytes\": " << stats.bytes_transferred
+    os << "{\"fd\": " << stats.fd << "\"num_request\": " << stats.num_request
+       << ", \"bytes_transferred\": " << stats.bytes_transferred
        << ", \"duration\": " << stats.duration << "}";
     return os;
 }
@@ -48,11 +45,10 @@ asio::awaitable<std::optional<session_stats>> session(
     tcp::socket socket, handler_type handler,
     std::optional<session_stats> stats)
 {
-    std::chrono::steady_clock::time_point start;
+    std::chrono::steady_clock::time_point start_time;
     if (stats) {
-        stats->tid = std::this_thread::get_id();
         stats->fd = socket.native_handle();
-        start = std::chrono::steady_clock::now();
+        start_time = std::chrono::steady_clock::now();
     }
 
     boost::beast::flat_buffer buffer(kRequestSizeLimit);
@@ -107,7 +103,7 @@ asio::awaitable<std::optional<session_stats>> session(
     }
 
     if (stats) {
-        stats->duration = std::chrono::steady_clock::now() - start;
+        stats->duration = std::chrono::steady_clock::now() - start_time;
     }
 
     co_return stats;
