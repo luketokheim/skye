@@ -43,4 +43,11 @@ if(CMAKE_COMPILER_IS_GNUCXX AND ENABLE_IO_URING)
     target_link_libraries(httpmicroservice PUBLIC uring)
 endif()
 
-add_subdirectory(cli)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    include(CTest)
+    add_subdirectory(cli)
+endif()
+
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
+    add_subdirectory(test)
+endif()

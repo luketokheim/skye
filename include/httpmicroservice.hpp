@@ -8,6 +8,7 @@
 #include <functional>
 #include <string_view>
 
+#include <boost/asio/io_context.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
 
@@ -22,5 +23,7 @@ using handler_type = std::function<response_type(request_type)>;
 response_type make_response(request_type req);
 
 int run(int port, handler_type handler);
+
+void run_async(boost::asio::io_context &ctx, int port, handler_type handler);
 
 } // namespace httpmicroservice
