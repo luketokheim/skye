@@ -1,5 +1,6 @@
 [requires]
 boost/1.79.0
+catch2/2.13.9
 
 [generators]
 CMakeDeps

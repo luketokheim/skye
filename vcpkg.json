@@ -2,6 +2,7 @@
   "name": "httpmicroservice",
   "version": "0.1.0",
   "dependencies": [
-    "boost-beast"
+    "boost-beast",
+    "catch2"
   ]
 }
