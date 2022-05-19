@@ -5,6 +5,8 @@
 #include <exception>
 #include <iostream>
 
+namespace http = httpmicroservice::http;
+
 int getenv_port()
 {
     constexpr auto kDefaultPort = 8080;
@@ -18,26 +20,28 @@ int getenv_port()
         return kDefaultPort;
     }
 
+    int port = kDefaultPort;
     try {
-        int port = boost::lexical_cast<int>(env);
-        if ((port >= kMinPort) && (port <= kMaxPort)) {
-            return port;
-        }
+        port = boost::lexical_cast<int>(env);
     } catch (boost::bad_lexical_cast &) {
+        throw std::invalid_argument("PORT is not a number");
     }
 
-    return kDefaultPort;
+    if ((port < kMinPort) || (port > kMaxPort)) {
+        throw std::invalid_argument("PORT is not between 1024 and 65535");
+    }
+
+    return port;
 }
 
 int main()
 {
     try {
-        using namespace httpmicroservice;
-
         auto port = getenv_port();
 
-        return run(port, [](auto req) {
-            response_type res(http::status::ok, req.version());
+        return httpmicroservice::run(port, [](auto req) {
+            http::response<http::string_body> res(
+                http::status::ok, req.version());
             res.set(http::field::content_type, "application/json");
             res.body() = "{\"hello\": \"world\"}";
 
