@@ -38,8 +38,8 @@ std::ostream &operator<<(std::ostream &os, const session_stats &stats)
 {
     os << "{\"fd\": " << stats.fd << "\", num_request\": " << stats.num_request
        << ", \"bytes_read\": " << stats.bytes_read
-       << ", \"bytes_write\": " << stats.bytes_write
-       << ", \"duration\": " << stats.duration << "}";
+       << ", \"bytes_write\": " << stats.bytes_write << ", \"duration\": "
+       << std::chrono::duration<double>(stats.duration).count() << "}";
     return os;
 }
 
