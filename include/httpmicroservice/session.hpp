@@ -15,8 +15,8 @@
 #include <boost/beast/http.hpp>
 
 #include <chrono>
-#include <optional>
 #include <functional>
+#include <optional>
 
 namespace httpmicroservice {
 
@@ -46,7 +46,7 @@ session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
                 asio::redirect_error(asio::use_awaitable, ec));
 
             if (ec == http::error::end_of_stream) {
-                // stream.shutdown(AsyncStream::shutdown_send, ec);
+                stream.shutdown(AsyncStream::shutdown_send, ec);
                 break;
             }
 
@@ -80,7 +80,7 @@ session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
         }
 
         if (res.need_eof()) {
-            // stream.shutdown(AsyncStream::shutdown_send, ec);
+            stream.shutdown(AsyncStream::shutdown_send, ec);
             break;
         }
     }
