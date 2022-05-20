@@ -1,0 +1,79 @@
+name: sanitizer
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    strategy:
+      matrix:
+        sanitizer: ["address", "thread"]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install build tools
+      run: >
+        apt-get update
+        && apt-get install -y clang-14 ninja-build pip
+
+    - name: Install package manager
+      run: >
+        pip install conan
+        && conan profile new default --detect
+        && conan profile update settings.build_type=Debug default
+        && conan profile update settings.compiler=clang default
+        && conan profile update settings.compiler.version=14 default
+        && conan profile update settings.compiler.libcxx=libc++ default
+
+    - name: Install dependencies
+      #
+      # Download packages listed in our manifest. Generate toolchain file for
+      # CMake so that we can use find_package(...) to find deps
+      #
+      run: >
+        install -d build
+        && cd build
+        && conan install .. --build=missing
+
+    - name: Configure
+      #
+      # Configure CMake in the "build" subdirectory.
+      #
+      working-directory: build
+      run: >
+        cmake -B . -S .. -GNinja
+        -DCMAKE_BUILD_TYPE=Debug
+        -DCMAKE_CXX_COMPILER=clang++-14
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+        -DCMAKE_CXX_FLAGS="-fsanitize=${{ matrix.sanitizer }}"
+
+    - name: Build
+      #
+      # Build all enabled programs with the current configuration.
+      #
+      working-directory: build
+      run: cmake --build . --config Debug
+
+    - name: Test
+      #
+      # Execute tests defined by the CMake configuration. In our project this
+      # is any executable target that has an associated add_test(NAME target).
+      #
+      # Example:
+      #   add_executable(unit_test unit_test.cpp)
+      #   add_test(UnitTestName unit_test)
+      #
+      working-directory: build
+      env:
+        ASAN_OPTIONS: detect_leaks=1:color=always
+        LSAN_OPTIONS: report_objects=1
+        TSAN_OPTIONS: halt_on_error=1:second_deadlock_stack=1
+        UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+      run: ctest --output-on-failure -C Debug

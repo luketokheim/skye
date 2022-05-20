@@ -11,11 +11,17 @@ add_library(
 target_compile_features(httpmicroservice PUBLIC cxx_std_20)
 target_include_directories(httpmicroservice PUBLIC include)
 
-# g++10 or newer on Linux
+# g++-10 or newer on Linux
 if(CMAKE_COMPILER_IS_GNUCXX)
     find_package(Threads)
     target_compile_options(httpmicroservice PUBLIC -fcoroutines)
     target_link_libraries(httpmicroservice PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+endif()
+
+# clang++-13 or newer on Linux
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(httpmicroservice PUBLIC -stdlib=libc++)
+    target_link_options(httpmicroservice PUBLIC -stdlib=libc++)
 endif()
 
 find_package(Boost REQUIRED)
