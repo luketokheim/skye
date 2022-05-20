@@ -36,6 +36,9 @@ jobs:
       # Download packages listed in our manifest. Generate toolchain file for
       # CMake so that we can use find_package(...) to find deps
       #
+      env:
+        CC: clang-14
+        CXX: clang++-14
       run: >
         install -d build
         && cd build
