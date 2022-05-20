@@ -9,15 +9,17 @@ target_link_libraries(
 add_test(UnitTests httpmicroservice_test)
 
 option(
-    ENABLE_FUZZER
+    ENABLE_TEST_FUZZER
     "Enable fuzzer test"
     OFF)
-if(ENABLE_FUZZER)
-    add_executable(httpmicroservice_fuzz test_fuzzer.cpp)
-    target_link_libraries(httpmicroservice_fuzz PRIVATE httpmicroservice)
-    target_link_options(httpmicroservice PUBLIC -fsanitize=fuzzer)
+if(ENABLE_TEST_FUZZER)
+    add_executable(httpmicroservice_fuzzer test_fuzzer.cpp)
+    target_compile_options(
+        httpmicroservice_fuzzer PRIVATE -fsanitize=fuzzer-no=link)
+    target_link_options(httpmicroservice_fuzzer PRIVATE -fsanitize=fuzzer)
+    target_link_libraries(httpmicroservice_fuzzer PRIVATE httpmicroservice)
     
-    add_test(FuzzTests httpmicroservice_fuzz)
+    add_test(FuzzerTests httpmicroservice_fuzzer)
 endif()
 
 # Run client requests to test server
