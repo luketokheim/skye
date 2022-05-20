@@ -1,6 +1,12 @@
 #include <httpmicroservice/session.hpp>
 
-#include <span>
+#include "mock_sock.h"
+
+#include <boost/asio.hpp>
+#include <boost/asio/co_spawn.hpp>
+
+#include <future>
+#include <vector>
 
 namespace asio = boost::asio;
 namespace http = httpmicroservice::http;
@@ -8,13 +14,12 @@ namespace usrv = httpmicroservice;
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 {
-    using buffer = std::span<uint8_t>(Data, Size);
+    using buffer = std::vector<uint8_t>;
 
     asio::io_context ctx;
     test::mock_sock<buffer> s(ctx.get_executor());
 
-    const buffer data(Data, Size);
-    s.set_rx(data);
+    s.set_rx(buffer(Data, Data + Size));
 
     auto handler = [](usrv::request req) {
         usrv::response res(http::status::ok, req.version());
