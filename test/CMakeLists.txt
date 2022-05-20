@@ -1,7 +1,8 @@
 find_package(Catch2 CONFIG REQUIRED)
 find_package(Python)
 
-add_executable(httpmicroservice_test test.cpp)
+add_executable(httpmicroservice_test test.cpp test_session.cpp)
+target_include_directories(httpmicroservice_test PRIVATE .)
 target_link_libraries(
     httpmicroservice_test PRIVATE httpmicroservice Catch2::Catch2)
 

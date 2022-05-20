@@ -10,21 +10,12 @@
 
 #include <chrono>
 #include <future>
-#include <random>
 #include <string>
 
-std::string make_random_string(std::size_t n)
-{
-    std::random_device rd;
-    std::mt19937 gen(rd());
+namespace asio = boost::asio;
+namespace usrv = httpmicroservice;
 
-    std::uniform_int_distribution<int> dis(32, 127);
-
-    std::string buf(n, 0);
-    std::generate(std::begin(buf), std::end(buf), [&]() { return dis(gen); });
-
-    return buf;
-}
+#if 0
 
 TEST_CASE("run_async")
 {
@@ -95,12 +86,12 @@ TEST_CASE("run_async")
     REQUIRE_NOTHROW(server.get());
 }
 
-TEST_CASE("make_request")
-{
-    using namespace httpmicroservice;
+#endif
 
-    request_type req;
-    auto res = make_response(req);
+TEST_CASE("make_request", "[usrv]")
+{
+    usrv::request req;
+    auto res = usrv::make_response(req);
 
     REQUIRE(res.result_int() == 200);
     REQUIRE(req.version() == res.version());
