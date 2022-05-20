@@ -43,6 +43,8 @@ FROM scratch as runtime
 
 COPY --from=builder /usr/local/bin/cli /cli
 
+ENV PORT=8080
+
 ENTRYPOINT ["/cli"]
 
-EXPOSE 8080
+EXPOSE $PORT
