@@ -1,171 +1,69 @@
 #include <httpmicroservice.hpp>
 
-#include <boost/asio/awaitable.hpp>
-#include <boost/asio/co_spawn.hpp>
-#include <boost/asio/detached.hpp>
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/redirect_error.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
+#include <httpmicroservice/service.hpp>
 
-#include <chrono>
+#include <boost/lexical_cast.hpp>
+
 #include <exception>
 #include <iostream>
-#include <optional>
 
 namespace httpmicroservice {
 
-namespace asio = boost::asio;
-using tcp = asio::ip::tcp;
-
-constexpr auto kRequestSizeLimit = 1 << 20;
-
-response_type make_response(request_type req)
+response make_response(request req)
 {
-    return response_type(http::status::ok, req.version());
+    return response(http::status::ok, req.version());
 }
-
-struct session_stats {
-    int fd = 0;
-    int num_request = 0;
-    int bytes_read = 0;
-    int bytes_write = 0;
-    std::chrono::steady_clock::duration duration;
-};
 
 std::ostream &operator<<(std::ostream &os, const session_stats &stats)
 {
     os << "{\"fd\": " << stats.fd << "\", num_request\": " << stats.num_request
        << ", \"bytes_read\": " << stats.bytes_read
-       << ", \"bytes_write\": " << stats.bytes_write << ", \"duration\": "
-       << std::chrono::duration<double>(stats.duration).count() << "}";
+       << ", \"bytes_write\": " << stats.bytes_write
+       << ", \"duration\": " << stats.duration << "}";
     return os;
 }
 
-asio::awaitable<std::optional<session_stats>> session(
-    tcp::socket socket, handler_type handler,
-    std::optional<session_stats> stats)
+std::string to_string(const session_stats &stats)
 {
-    std::chrono::steady_clock::time_point start_time;
-    if (stats) {
-        stats->fd = socket.native_handle();
-        start_time = std::chrono::steady_clock::now();
-    }
-
-    boost::beast::flat_buffer buffer(kRequestSizeLimit);
-    boost::system::error_code ec;
-
-    for (;;) {
-        // req = read(...)
-        request_type req;
-        {
-            auto bytes_read = co_await http::async_read(
-                socket, buffer, req,
-                asio::redirect_error(asio::use_awaitable, ec));
-
-            if (ec == http::error::end_of_stream) {
-                socket.shutdown(tcp::socket::shutdown_send, ec);
-                break;
-            }
-
-            if (ec) {
-                break;
-            }
-
-            if (stats) {
-                stats->bytes_read += bytes_read;
-            }
-        }
-
-        auto keep_alive = req.keep_alive();
-
-        // res = handler(req)
-        auto res = std::invoke(handler, std::move(req));
-        res.prepare_payload();
-        res.keep_alive(keep_alive);
-
-        // write(res)
-        auto bytes_write = co_await http::async_write(
-            socket, res, asio::redirect_error(asio::use_awaitable, ec));
-
-        if (ec) {
-            co_return stats;
-        }
-
-        if (stats) {
-            ++stats->num_request;
-            stats->bytes_write += bytes_write;
-        }
-
-        if (res.need_eof()) {
-            socket.shutdown(tcp::socket::shutdown_send, ec);
-            break;
-        }
-    }
-
-    if (stats) {
-        stats->duration = std::chrono::steady_clock::now() - start_time;
-    }
-
-    co_return stats;
+    return boost::lexical_cast<std::string>(stats);
 }
 
-asio::awaitable<void> listen(int port, handler_type handler)
-{
-    tcp::endpoint endpoint(tcp::v4(), port);
-
-    tcp::acceptor acceptor(co_await asio::this_coro::executor, endpoint);
-    for (;;) {
-        boost::system::error_code ec;
-
-        auto socket = co_await acceptor.async_accept(
-            asio::redirect_error(asio::use_awaitable, ec));
-
-        if (ec) {
-            break;
-        }
-
-        // Run coroutine to handle one http connection
-        co_spawn(
-            acceptor.get_executor(),
-            session(
-                std::move(socket), handler,
-                std::make_optional<session_stats>()),
-            [](auto ptr, auto stats) {
-                // Propagate exception from the coroutine
-                if (ptr) {
-                    std::rethrow_exception(ptr);
-                }
-
-                if (stats) {
-                    std::cout << *stats << "\n";
-                }
-            });
-    }
-}
-
-int run(int port, handler_type handler)
+int run(int port, request_handler handler)
 {
     asio::io_context ctx;
-    
-    run_async(ctx, port, handler);
-    
+
+    async_run(ctx.get_executor(), port, handler);
+
     ctx.run();
 
     return 0;
 }
 
-void run_async(boost::asio::io_context &ctx, int port, handler_type handler)
+int getenv_port()
 {
-    // Run coroutine to listen on our port
-    co_spawn(
-        ctx.get_executor(), listen(port, std::move(handler)), [](auto ptr) {
-        // Propagate exception from the coroutine
-        if (ptr) {
-            std::rethrow_exception(ptr);
-        }
-    });
+    constexpr auto kDefaultPort = 8080;
+    constexpr auto kMinPort = (1 << 10);
+    constexpr auto kMaxPort = (1 << 16) - 1;
+
+    // Cloud Run sets the PORT environment variable
+    // https://cloud.google.com/run/docs/container-contract#port
+    char *env = std::getenv("PORT");
+    if (env == nullptr) {
+        return kDefaultPort;
+    }
+
+    int port = kDefaultPort;
+    try {
+        port = boost::lexical_cast<int>(env);
+    } catch (boost::bad_lexical_cast &) {
+        throw std::invalid_argument("PORT is not a number");
+    }
+
+    if ((port < kMinPort) || (port > kMaxPort)) {
+        throw std::invalid_argument("PORT is not between 1024 and 65535");
+    }
+
+    return port;
 }
 
 } // namespace httpmicroservice
