@@ -8,6 +8,18 @@ target_link_libraries(
 
 add_test(UnitTests httpmicroservice_test)
 
+option(
+    ENABLE_FUZZER
+    "Enable fuzzer test"
+    OFF)
+if(ENABLE_FUZZER)
+    add_executable(httpmicroservice_fuzz test_fuzzer.cpp)
+    target_link_libraries(httpmicroservice_fuzz PRIVATE httpmicroservice)
+    target_link_options(httpmicroservice PUBLIC -fsanitize=fuzzer)
+    
+    add_test(FuzzTests httpmicroservice_fuzz)
+endif()
+
 # Run client requests to test server
 # python test/make_client_requests.py httpmicroservice_test
 # add_test(
