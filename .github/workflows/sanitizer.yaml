@@ -25,11 +25,11 @@ jobs:
     - name: Install package manager
       run: >
         pip install conan
-        && conan profile new default --detect
-        && conan profile update settings.build_type=Debug default
-        && conan profile update settings.compiler=clang default
-        && conan profile update settings.compiler.version=14 default
-        && conan profile update settings.compiler.libcxx=libc++ default
+        && conan profile new sanitizer --detect
+        && conan profile update settings.build_type=Debug sanitizer
+        && conan profile update settings.compiler=clang sanitizer
+        && conan profile update settings.compiler.version=14 sanitizer
+        && conan profile update settings.compiler.libcxx=libc++ sanitizer
 
     - name: Install dependencies
       #
@@ -42,7 +42,7 @@ jobs:
       run: >
         install -d build
         && cd build
-        && conan install .. --build=missing
+        && conan install .. --build=missing --profile=sanitizer
 
     - name: Configure
       #
