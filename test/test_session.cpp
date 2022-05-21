@@ -2,8 +2,8 @@
 
 #include <httpmicroservice/session.hpp>
 
-#include "mock_sock.h"
-#include "test.h"
+#include "mock_sock.hpp"
+#include "test.hpp"
 
 #include <boost/asio.hpp>
 #include <boost/asio/co_spawn.hpp>

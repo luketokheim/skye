@@ -71,7 +71,7 @@ session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
             stream, res, asio::redirect_error(asio::use_awaitable, ec));
 
         if (ec) {
-            co_return stats;
+            break;
         }
 
         if (stats) {
