@@ -15,7 +15,7 @@ option(
 if(ENABLE_TEST_FUZZER)
     add_executable(httpmicroservice_fuzzer test_fuzzer.cpp)
     target_compile_options(
-        httpmicroservice_fuzzer PRIVATE -fsanitize=fuzzer-no=link)
+        httpmicroservice_fuzzer PRIVATE -fsanitize=fuzzer)
     target_link_options(httpmicroservice_fuzzer PRIVATE -fsanitize=fuzzer)
     target_link_libraries(httpmicroservice_fuzzer PRIVATE httpmicroservice)
     
