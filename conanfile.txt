@@ -5,3 +5,6 @@ catch2/2.13.9
 [generators]
 CMakeDeps
 CMakeToolchain
+
+[options]
+boost:header_only=True
