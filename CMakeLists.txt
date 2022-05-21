@@ -19,13 +19,13 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 # clang++-13 or newer on Linux
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR APPLE)
     target_compile_options(httpmicroservice PUBLIC -stdlib=libc++)
     target_link_options(httpmicroservice PUBLIC -stdlib=libc++)
 endif()
 
 find_package(Boost REQUIRED)
-target_link_libraries(httpmicroservice PUBLIC Boost::boost)
+target_link_libraries(httpmicroservice PUBLIC Boost::headers)
 
 option(
     ENABLE_STANDALONE
