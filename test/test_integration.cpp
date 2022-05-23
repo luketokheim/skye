@@ -12,6 +12,7 @@
 #include <chrono>
 #include <future>
 #include <string>
+#include <thread>
 
 TEST_CASE("run_async")
 {
@@ -42,15 +43,26 @@ TEST_CASE("run_async")
 
     usrv::request req(http::verb::get, "/", 11);
 
-    // Run a HTTP client in its own thread, get http://127.0.0.1:8080/
+    // Run a HTTP client in its own thread, get http://localhost:8080/
     // https://github.com/boostorg/beast/blob/develop/example/http/client/sync/http_client_sync.cpp
     auto client = std::async(std::launch::async, [req]() {
         asio::io_context ctx;
 
         tcp::resolver resolver(ctx);
-        auto endpoint = *resolver.resolve("0.0.0.0", std::to_string(Port));
+        auto endpoint = *resolver.resolve("127.0.0.1", std::to_string(Port));
 
         boost::system::error_code ec;
+
+        // Just try to connect 
+        for (int i = 0; i < 5; ++i) {
+            tcp::socket socket(ctx);
+            socket.connect(endpoint, ec);
+            if (!ec) {
+                break;
+            }
+
+            std::this_thread::sleep_for(100ms);
+        }
 
         boost::beast::tcp_stream stream(ctx);
         stream.expires_after(2s);
