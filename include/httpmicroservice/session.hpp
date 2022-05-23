@@ -86,9 +86,8 @@ session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
     }
 
     if (stats) {
-        stats->duration = std::chrono::duration<double>(
-                              std::chrono::steady_clock::now() - start_time)
-                              .count();
+        auto duration = std::chrono::steady_clock::now() - start_time;
+        stats->duration = std::chrono::duration<float>(duration).count();
     }
 
     co_return stats;
