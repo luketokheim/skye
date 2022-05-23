@@ -26,7 +26,7 @@ jobs:
 
     - name: Install package manager
       run: >
-        pip install conan
+        pip3 install conan
         && conan profile new default --detect
 
     - name: Install dependencies
