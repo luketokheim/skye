@@ -30,7 +30,8 @@ RUN cmake -B . -S .. \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake \
     -DENABLE_STANDALONE=ON \
-    -DENABLE_IO_URING=ON
+    -DENABLE_IO_URING=ON \
+    -DBUILD_TESTING=OFF
 
 # Build
 RUN cmake --build . --config Release

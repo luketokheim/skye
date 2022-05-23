@@ -9,10 +9,9 @@ conan install .. --build=missing --profile=tidy
 
 cmake -B . -S .. -GNinja \
   -DCMAKE_BUILD_TYPE=Debug \
-  -DCMAKE_CXX_COMPILER=clang++ \
+  -DCMAKE_CXX_COMPILER=clang++-14 \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-  -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake \
-  -DENABLE_TESTING=OFF
+  -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
 
 cmake --build . --config Debug
 
