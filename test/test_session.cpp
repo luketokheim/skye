@@ -123,13 +123,14 @@ TEST_CASE("session", "[session]")
     const std::string body = test::make_random_string<std::string>(1024);
 
     int handler_called = 0;
-    auto handler = [&body, &handler_called](usrv::request req) {
+    auto handler = [&body, &handler_called](
+                       usrv::request req) -> asio::awaitable<usrv::response> {
         ++handler_called;
 
         usrv::response res(http::status::ok, req.version());
         res.body() = body;
 
-        return res;
+        co_return res;
     };
 
     auto future = co_spawn(

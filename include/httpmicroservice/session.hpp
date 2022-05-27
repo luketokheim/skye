@@ -25,8 +25,8 @@ namespace asio = boost::asio;
 constexpr auto kRequestSizeLimit = 1 << 20;
 
 template <typename AsyncStream, typename Handler>
-asio::awaitable<std::optional<session_stats>>
-session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
+asio::awaitable<std::optional<session_stats>> session(
+    AsyncStream stream, Handler &&handler, std::optional<session_stats> stats)
 {
     std::chrono::steady_clock::time_point start_time;
     if (stats) {
@@ -62,7 +62,8 @@ session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
         auto keep_alive = req.keep_alive();
 
         // res = handler(req)
-        response res = std::invoke(handler, std::move(req));
+        response res = co_await std::invoke(
+            std::forward<Handler>(handler), std::move(req));
         res.prepare_payload();
         res.keep_alive(keep_alive);
 
@@ -86,8 +87,7 @@ session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
     }
 
     if (stats) {
-        auto duration = std::chrono::steady_clock::now() - start_time;
-        stats->duration = std::chrono::duration<float>(duration).count();
+        stats->duration = std::chrono::steady_clock::now() - start_time;
     }
 
     co_return stats;
