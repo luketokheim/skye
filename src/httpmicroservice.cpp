@@ -18,8 +18,8 @@ std::ostream &operator<<(std::ostream &os, const session_stats &stats)
 {
     os << "{\"fd\": " << stats.fd << "\", num_request\": " << stats.num_request
        << ", \"bytes_read\": " << stats.bytes_read
-       << ", \"bytes_write\": " << stats.bytes_write
-       << ", \"duration\": " << stats.duration << "}";
+       << ", \"bytes_write\": " << stats.bytes_write << ", \"duration\": "
+       << std::chrono::duration<double>(stats.duration).count() << "}";
     return os;
 }
 
@@ -32,7 +32,11 @@ int run(int port, request_handler handler)
 {
     asio::io_context ctx;
 
-    async_run(ctx.get_executor(), port, handler);
+    async_run(
+        ctx.get_executor(), port,
+        [handler](request req) -> asio::awaitable<response> {
+            co_return handler(std::move(req));
+        });
 
     ctx.run();
 

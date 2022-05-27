@@ -8,6 +8,8 @@
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
 
+#include <chrono>
+#include <iosfwd>
 #include <string>
 
 namespace httpmicroservice {
@@ -23,8 +25,10 @@ struct session_stats {
     int num_request = 0;
     int bytes_read = 0;
     int bytes_write = 0;
-    float duration = 0;
+    std::chrono::steady_clock::duration duration;
 };
+
+std::ostream &operator<<(std::ostream &os, const session_stats &stats);
 
 std::string to_string(const session_stats &stats);
 

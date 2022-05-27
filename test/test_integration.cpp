@@ -33,10 +33,16 @@ TEST_CASE("run_async")
         return res;
     };
 
+    auto awaitable_handler =
+        [handler](auto req) -> asio::awaitable<usrv::response> {
+        auto res = handler(std::move(req));
+        co_return res;
+    };
+
     // Run server in its own thread so we can call ctx.stop() from main
     asio::io_context ctx;
-    auto server = std::async(std::launch::async, [&ctx, handler]() {
-        usrv::async_run(ctx.get_executor(), Port, handler);
+    auto server = std::async(std::launch::async, [&ctx, awaitable_handler]() {
+        usrv::async_run(ctx.get_executor(), Port, awaitable_handler);
 
         ctx.run_for(5s);
     });
@@ -53,7 +59,7 @@ TEST_CASE("run_async")
 
         boost::system::error_code ec;
 
-        // Just try to connect 
+        // Just try to connect
         for (int i = 0; i < 5; ++i) {
             tcp::socket socket(ctx);
             socket.connect(endpoint, ec);
