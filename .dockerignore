@@ -1,7 +1,7 @@
 *
-!cli
+!examples
 !include
 !src
-!test
+!tests
 !CMakeLists.txt
 !conanfile.txt
