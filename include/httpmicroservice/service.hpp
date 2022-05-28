@@ -39,6 +39,7 @@ asio::awaitable<void> accept(Acceptor acceptor, Handler &&handler)
                 std::move(stream), std::move(session_handler),
                 std::make_optional<session_stats>()),
             [](auto ptr, auto stats) {
+                // Propagate exception from the coroutine
                 if (ptr) {
                     std::rethrow_exception(ptr);
                 }
@@ -76,7 +77,7 @@ void async_run(Executor ex, int port, Handler &&handler)
 }
 
 template <typename Executor, typename Handler>
-auto make_handler(Executor ex, Handler handler)
+auto make_co_handler(Executor ex, Handler handler)
 {
     return [ex, handler](request req) -> asio::awaitable<response> {
         auto res =

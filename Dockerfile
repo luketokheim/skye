@@ -1,5 +1,6 @@
 #
 # docker build -t httpmicroservice-cpp .
+# docker run --rm -p 8080:8080 httpmicroservice-cpp
 #
 FROM alpine:latest as builder
 
@@ -38,14 +39,14 @@ RUN cmake --build . --config Release
 
 # Install
 RUN cmake --install . --config Release
-RUN strip /usr/local/bin/cli
+RUN strip /usr/local/bin/usrv-example
 
 FROM scratch as runtime
 
-COPY --from=builder /usr/local/bin/cli /cli
+COPY --from=builder /usr/local/bin/usrv-example /usrv
 
 ENV PORT=8080
 
-ENTRYPOINT ["/cli"]
+ENTRYPOINT ["/usrv"]
 
 EXPOSE $PORT
