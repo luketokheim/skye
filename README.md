@@ -42,9 +42,9 @@ of coroutines is inspired by the [Talking Async Ep1: Why C++20 is the Awesomest
 Language for Network Programming][https://youtu.be/icgnqFM-aY4] video by Chris
 Kohlhoff.
 
-- [Coroutines][https://en.cppreference.com/w/cpp/language/coroutines] support from a modern compiler
-- [Boost.Asio][https://think-async.com/Asio/] for network I/O
-- [Boost.Beast][https://github.com/boostorg/beast] to parse HTTP requests and form reponses
+- [Coroutines](https://en.cppreference.com/w/cpp/language/coroutines) support from a modern compiler
+- [Boost.Asio](https://think-async.com/Asio/) for network I/O
+- [Boost.Beast](https://github.com/boostorg/beast) to parse HTTP requests and form reponses
 
 ## Compilers
 
@@ -56,6 +56,6 @@ This project requires C++20 support for coroutines.
 
 ## Package managers
 
-This project works with [conan][https://conan.io/] and [vcpkg][https://vcpkg.io/].
-I use the conan build for CI and Docker images because it builds faster with the
-package dependencies.
+This project works with the [conan](https://conan.io/) and
+[vcpkg](https://vcpkg.io/) C++ package managers. I use the conan build for CI
+and Docker images because it builds faster with the package dependencies.
