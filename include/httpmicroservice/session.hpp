@@ -62,8 +62,7 @@ asio::awaitable<std::optional<session_stats>> session(
         auto keep_alive = req.keep_alive();
 
         // res = handler(req)
-        response res = co_await std::invoke(
-            std::forward<Handler>(handler), std::move(req));
+        response res = co_await std::invoke(handler, std::move(req));
         res.prepare_payload();
         res.keep_alive(keep_alive);
 
