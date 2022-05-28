@@ -35,35 +35,36 @@ if(CMAKE_COMPILER_IS_GNUCXX AND ENABLE_STANDALONE)
     target_link_options(httpmicroservice PUBLIC -static-libstdc++ -static)
 endif()
 
+find_library(URING_LIBRARY uring)
 option(
     ENABLE_IO_URING
     "Enable the io_uring backend"
     OFF)
-if(CMAKE_COMPILER_IS_GNUCXX AND ENABLE_IO_URING)
+if(ENABLE_IO_URING AND URING_LIBRARY)
     target_compile_definitions(
         httpmicroservice
         PUBLIC
         BOOST_ASIO_HAS_IO_URING
         BOOST_ASIO_DISABLE_EPOLL)
-    target_link_libraries(httpmicroservice PUBLIC uring)
+    target_link_libraries(httpmicroservice PUBLIC ${URING_LIBRARY})
 endif()
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     include(CTest)
     add_subdirectory(examples)
+
+    set(LIBRARY_PUBLIC_HEADERS
+        include/httpmicroservice.hpp
+        include/httpmicroservice/service.hpp
+        include/httpmicroservice/session.hpp
+        include/httpmicroservice/types.hpp)
+
+    set_target_properties(
+        httpmicroservice PROPERTIES PUBLIC_HEADER "${LIBRARY_PUBLIC_HEADERS}")
+
+    install(TARGETS httpmicroservice ARCHIVE PUBLIC_HEADER)
 endif()
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     add_subdirectory(tests)
 endif()
-
-set(LIBRARY_PUBLIC_HEADERS
-    include/httpmicroservice.hpp
-    include/httpmicroservice/service.hpp
-    include/httpmicroservice/session.hpp
-    include/httpmicroservice/types.hpp)
-
-set_target_properties(
-    httpmicroservice PROPERTIES PUBLIC_HEADER "${LIBRARY_PUBLIC_HEADERS}")
-
-install(TARGETS httpmicroservice ARCHIVE PUBLIC_HEADER)
