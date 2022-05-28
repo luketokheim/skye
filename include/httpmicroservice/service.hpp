@@ -17,7 +17,7 @@ namespace httpmicroservice {
 namespace asio = boost::asio;
 
 template <typename Acceptor, typename Handler>
-asio::awaitable<void> accept(Acceptor acceptor, Handler &&handler)
+asio::awaitable<void> accept(Acceptor acceptor, Handler handler)
 {
     for (;;) {
         boost::system::error_code ec;
@@ -29,14 +29,11 @@ asio::awaitable<void> accept(Acceptor acceptor, Handler &&handler)
             break;
         }
 
-        // Bind the handler by value into the session coroutine
-        Handler session_handler(handler);
-
         // Run coroutine to handle one http connection
         co_spawn(
             acceptor.get_executor(),
             session(
-                std::move(stream), std::move(session_handler),
+                std::move(stream), handler,
                 std::make_optional<session_stats>()),
             [](auto ptr, auto stats) {
                 // Propagate exception from the coroutine
@@ -53,7 +50,7 @@ asio::awaitable<void> accept(Acceptor acceptor, Handler &&handler)
 }
 
 template <typename Handler>
-asio::awaitable<void> listen(int port, Handler &&handler)
+asio::awaitable<void> listen(int port, Handler handler)
 {
     using tcp = asio::ip::tcp;
 
@@ -61,14 +58,14 @@ asio::awaitable<void> listen(int port, Handler &&handler)
 
     tcp::acceptor acceptor(co_await asio::this_coro::executor, endpoint);
 
-    co_await accept(std::move(acceptor), std::forward<Handler>(handler));
+    co_await accept(std::move(acceptor), std::move(handler));
 }
 
 template <typename Executor, typename Handler>
-void async_run(Executor ex, int port, Handler &&handler)
+void async_run(Executor ex, int port, Handler handler)
 {
     // Run coroutine to listen on our port
-    co_spawn(ex, listen(port, std::forward<Handler>(handler)), [](auto ptr) {
+    co_spawn(ex, listen(port, std::move(handler)), [](auto ptr) {
         // Propagate exception from the coroutine
         if (ptr) {
             std::rethrow_exception(ptr);

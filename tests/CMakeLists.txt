@@ -1,5 +1,5 @@
 find_package(Catch2 CONFIG REQUIRED)
-find_package(Python)
+# find_package(Python)
 
 add_executable(
     usrv-test test.cpp test_integration.cpp test_session.cpp)
@@ -27,9 +27,9 @@ if(ENABLE_TEST_FUZZER)
 endif()
 
 # Run client requests to test server
-# python test/make_client_requests.py httpmicroservice_test
+# python tests/make_client_requests.py usrv-test
 # add_test(
-#     NAME test
+#     NAME IntegrationTests
 #     COMMAND ${Python_EXECUTABLE}
 #     ${CMAKE_CURRENT_SOURCE_DIR}/make_client_requests.py
-#     $<TARGET_FILE:httpmicroservice_test>)
+#     $<TARGET_FILE:usrv-test>)
