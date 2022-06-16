@@ -46,7 +46,7 @@ if(ENABLE_IO_URING AND URING_LIBRARY)
         PUBLIC
         BOOST_ASIO_HAS_IO_URING
         BOOST_ASIO_DISABLE_EPOLL)
-    target_link_libraries(httpmicroservice PUBLIC ${URING_LIBRARY})
+    target_link_libraries(httpmicroservice PUBLIC uring)
 endif()
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
