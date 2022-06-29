@@ -17,7 +17,7 @@ FixNamespaceComments: true
 IncludeBlocks: Preserve
 IncludeCategories:
   # Public project include files
-  - Regex:    '<shadowmocap/?[[:alpha:]_]*.hpp>'
+  - Regex:    '<httpmicroservice/?[[:alpha:]_]*.hpp>'
     Priority: 2
   # C++ Standard Library
   - Regex:    '<[[:alpha:]_]+>'
