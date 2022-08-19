@@ -12,7 +12,8 @@ cmake -B . -S .. -GNinja \
   -DCMAKE_CXX_COMPILER=clang++-14 \
   -DCMAKE_CXX_CLANG_TIDY=clang-tidy-14 \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-  -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+  -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake \
+  -DBUILD_TESTING=OFF
 
 cmake --build . --config Release
 
