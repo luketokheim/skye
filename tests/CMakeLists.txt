@@ -7,7 +7,7 @@ target_include_directories(usrv-test PRIVATE .)
 target_link_libraries(
     usrv-test PRIVATE
     httpmicroservice::httpmicroservice
-    Catch2::Catch2)
+    Catch2::Catch2WithMain)
 
 add_test(UnitTests usrv-test)
 
