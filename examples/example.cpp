@@ -25,7 +25,7 @@ int main()
     try {
         auto port = usrv::getenv_port();
 
-        asio::io_context ioc;
+        auto ioc = asio::io_context{};
 
         asio::thread_pool pool(1);
         auto ex = pool.get_executor();

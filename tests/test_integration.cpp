@@ -1,4 +1,4 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <httpmicroservice/service.hpp>
 
@@ -22,10 +22,12 @@ TEST_CASE("run_async")
     namespace usrv = httpmicroservice;
     using tcp = boost::asio::ip::tcp;
 
-    constexpr auto Port = 8080;
+    constexpr auto kBodyNumBytes = 1000;
+    constexpr auto kPort = 8080;
+    constexpr auto kHttpVersion = 11;
 
     // Create a handler that returns random data in the body
-    auto body = test::make_random_string<std::string>(1000);
+    auto body = test::make_random_string<std::string>(kBodyNumBytes);
     auto handler = [body](auto req) {
         usrv::response res(http::status::ok, req.version());
         res.set(http::field::content_type, "text/html");
@@ -42,12 +44,12 @@ TEST_CASE("run_async")
     // Run server in its own thread so we can call ctx.stop() from main
     asio::io_context ctx;
     auto server = std::async(std::launch::async, [&ctx, awaitable_handler]() {
-        usrv::async_run(ctx.get_executor(), Port, awaitable_handler);
+        usrv::async_run(ctx.get_executor(), kPort, awaitable_handler);
 
         ctx.run_for(5s);
     });
 
-    usrv::request req(http::verb::get, "/", 11);
+    usrv::request req(http::verb::get, "/", kHttpVersion);
 
     // Run a HTTP client in its own thread, get http://localhost:8080/
     // https://github.com/boostorg/beast/blob/develop/example/http/client/sync/http_client_sync.cpp
@@ -55,7 +57,7 @@ TEST_CASE("run_async")
         asio::io_context ctx;
 
         tcp::resolver resolver(ctx);
-        auto endpoint = *resolver.resolve("127.0.0.1", std::to_string(Port));
+        auto endpoint = *resolver.resolve("127.0.0.1", std::to_string(kPort));
 
         boost::system::error_code ec;
 

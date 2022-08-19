@@ -21,11 +21,11 @@ using response = http::response<http::string_body>;
 using request_handler = std::function<response(request)>;
 
 struct session_stats {
-    int fd = 0;
-    int num_request = 0;
-    int bytes_read = 0;
-    int bytes_write = 0;
-    std::chrono::steady_clock::duration duration;
+    int fd{0};
+    int num_request{0};
+    int bytes_read{0};
+    int bytes_write{0};
+    std::chrono::steady_clock::duration duration{};
 };
 
 std::ostream &operator<<(std::ostream &os, const session_stats &stats);
