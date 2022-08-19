@@ -32,7 +32,7 @@ features that I omitted.
 
 - No SSL/TLS support
 - No request or keep alive timeouts
-- No request target to handler mapping
+- No request target resource to handler mapping
 - No static content or nice error pages
 
 ## Requirements
@@ -56,7 +56,29 @@ This project requires C++20 support for coroutines.
 
 ## Package managers
 
-This project works with the [conan](https://conan.io/) and
-[vcpkg](https://vcpkg.io/) C++ package managers. I use the conan build for CI
-and Docker images because it builds faster on Linux with the package
-dependencies.
+This project uses the [conan](https://conan.io/) C++ package manager to build
+for Continuous Integration (CI) and its Docker images.
+
+## Build
+
+Create a build folder and install dependencies with the package manager.
+
+```console
+mkdir build
+cd build
+conan install .. --build=missing
+```
+
+Use the toolchain file created by the package manager so cmake can locate
+libraries with [find_package](https://cmake.org/cmake/help/latest/command/find_package.html).
+
+```console
+cmake -B . -S .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+cmake --build . --config=Release
+```
+
+Run tests.
+
+```console
+ctest -C
+```

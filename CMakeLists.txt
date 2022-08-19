@@ -2,7 +2,7 @@
 # conan generator requires 3.15
 cmake_minimum_required(VERSION 3.15)
 
-project(httpmicroservice CXX)
+project(httpmicroservice)
 
 add_library(httpmicroservice src/httpmicroservice.cpp)
 add_library(httpmicroservice::httpmicroservice ALIAS httpmicroservice)
@@ -24,7 +24,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 find_package(Boost REQUIRED)
-target_link_libraries(httpmicroservice PUBLIC Boost::headers)
+target_link_libraries(httpmicroservice PUBLIC Boost::boost)
 
 option(
     ENABLE_STANDALONE
