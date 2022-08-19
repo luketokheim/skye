@@ -5,6 +5,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include <exception>
+#include <format>
 #include <iostream>
 
 namespace httpmicroservice {
@@ -16,16 +17,17 @@ response make_response(request req)
 
 std::ostream &operator<<(std::ostream &os, const session_stats &stats)
 {
-    os << "{\"fd\": " << stats.fd << "\", num_request\": " << stats.num_request
-       << ", \"bytes_read\": " << stats.bytes_read
-       << ", \"bytes_write\": " << stats.bytes_write << ", \"duration\": "
-       << std::chrono::duration<double>(stats.duration).count() << "}";
+    os << to_string(stats);
     return os;
 }
 
 std::string to_string(const session_stats &stats)
 {
-    return boost::lexical_cast<std::string>(stats);
+    return std::format(
+        "{{\"fd\": {}, \"num_request\": {}, \"bytes_read\": {}, "
+        "\"bytes_write\": {}, \"duration\": {}}}",
+        stats.fd, stats.num_request, stats.bytes_read, stats.bytes_write,
+        std::chrono::duration<double>(stats.duration).count());
 }
 
 int run(int port, request_handler handler)
