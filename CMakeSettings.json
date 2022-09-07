@@ -1,0 +1,28 @@
+﻿{
+  "configurations": [
+    {
+      "name": "Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${projectDir}\\build\\cmake-build-debug",
+      "installRoot": "${projectDir}\\build\\cmake-build-debug\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "cmakeToolchain": "${projectDir}\\build\\cmake-build-debug\\conan_toolchain.cmake"
+    },
+    {
+      "name": "Release",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${projectDir}\\build\\cmake-build-release",
+      "installRoot": "${projectDir}\\build\\cmake-build-release\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "cmakeToolchain": "${projectDir}\\build\\cmake-build-release\\conan_toolchain.cmake"
+    }
+  ]
+}
