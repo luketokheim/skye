@@ -45,7 +45,7 @@ jobs:
       #
       working-directory: build
       run: >
-        cmake -B . -S ..
+        cmake .. -GNinja
         -DCMAKE_BUILD_TYPE=Release
         -DCMAKE_TOOLCHAIN_FILE="conan_toolchain.cmake"
 
