@@ -50,7 +50,7 @@ jobs:
       #
       working-directory: build
       run: >
-        cmake -B . -S .. -GNinja
+        cmake .. -GNinja
         -DCMAKE_BUILD_TYPE=Debug
         -DCMAKE_CXX_COMPILER=clang++-14
         -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
