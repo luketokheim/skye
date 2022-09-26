@@ -2,30 +2,14 @@
 
 #include <httpmicroservice/service.hpp>
 
-#include <boost/lexical_cast.hpp>
-
+#include <charconv>
 #include <exception>
-#include <iostream>
 
 namespace httpmicroservice {
 
 response make_response(request req)
 {
     return response(http::status::ok, req.version());
-}
-
-std::ostream &operator<<(std::ostream &os, const session_stats &stats)
-{
-    os << "{\"fd\": " << stats.fd << "\", num_request\": " << stats.num_request
-       << ", \"bytes_read\": " << stats.bytes_read
-       << ", \"bytes_write\": " << stats.bytes_write << ", \"duration\": "
-       << std::chrono::duration<double>(stats.duration).count() << "}";
-    return os;
-}
-
-std::string to_string(const session_stats &stats)
-{
-    return boost::lexical_cast<std::string>(stats);
 }
 
 int run(int port, request_handler handler)
@@ -46,20 +30,19 @@ int run(int port, request_handler handler)
 int getenv_port()
 {
     constexpr auto kDefaultPort = 8080;
-    constexpr auto kMinPort = (1 << 10);
-    constexpr auto kMaxPort = (1 << 16) - 1;
+    constexpr auto kMinPort = 1024;
+    constexpr auto kMaxPort = 65535;
 
     // Cloud Run sets the PORT environment variable
     // https://cloud.google.com/run/docs/container-contract#port
-    char *env = std::getenv("PORT");
+    char* env = std::getenv("PORT");
     if (env == nullptr) {
         return kDefaultPort;
     }
 
     int port = kDefaultPort;
-    try {
-        port = boost::lexical_cast<int>(env);
-    } catch (boost::bad_lexical_cast &) {
+
+    if (std::from_chars(env, env + std::strlen(env), port).ec != std::errc{}) {
         throw std::invalid_argument("PORT is not a number");
     }
 

@@ -28,6 +28,6 @@ IncludeCategories:
   # Everything else, third party library headers
   - Regex:    '.*'
     Priority: 1
-# IndentAccessModifiers: false
 IndentWidth: 4
+PointerAlignment: Left
 Standard: c++20
