@@ -24,7 +24,9 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 find_package(Boost REQUIRED)
-target_link_libraries(httpmicroservice PUBLIC Boost::boost)
+find_package(fmt REQUIRED)
+
+target_link_libraries(httpmicroservice PUBLIC Boost::boost fmt::fmt)
 
 option(
     ENABLE_STANDALONE

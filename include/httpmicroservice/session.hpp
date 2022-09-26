@@ -10,7 +10,6 @@
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/redirect_error.hpp>
 #include <boost/asio/use_awaitable.hpp>
-
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 
@@ -25,8 +24,8 @@ namespace asio = boost::asio;
 constexpr auto kRequestSizeLimit = 1 << 20;
 
 template <typename AsyncStream, typename Handler>
-asio::awaitable<std::optional<session_stats>> session(
-    AsyncStream stream, Handler handler, std::optional<session_stats> stats)
+asio::awaitable<std::optional<session_stats>>
+session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
 {
     std::chrono::steady_clock::time_point start_time;
     if (stats) {

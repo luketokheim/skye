@@ -3,8 +3,8 @@
 
 #include <boost/asio/thread_pool.hpp>
 
+#include <cstdio>
 #include <exception>
-#include <iostream>
 #include <thread>
 
 namespace asio = boost::asio;
@@ -37,9 +37,9 @@ int main()
 
         return 0;
     } catch (std::exception &e) {
-        std::cerr << e.what() << "\n";
+        fmt::print(stderr, "{}\n", e.what());
     } catch (...) {
-        std::cerr << "unknown exception\n";
+        fmt::print(stderr, "unknown exception\n");
     }
 
     return -1;
