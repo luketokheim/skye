@@ -66,6 +66,12 @@ public:
         ec = boost::system::error_code();
     }
 
+    template <typename SettableSocketOption>
+    void set_option(const SettableSocketOption& option, boost::system::error_code &ec)
+    {
+        ec = boost::system::error_code();
+    }
+
     void set_rx(const Buffer &buf)
     {
         *rx_ = buf;

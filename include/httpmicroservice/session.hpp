@@ -36,6 +36,8 @@ session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
     boost::beast::flat_buffer buffer(kRequestSizeLimit);
     boost::system::error_code ec;
 
+    // stream.set_option(asio::ip::tcp::no_delay{true}, ec);
+
     for (;;) {
         // req = read(...)
         request req;
