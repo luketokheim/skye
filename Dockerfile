@@ -10,7 +10,7 @@ RUN apk update && apk add --no-cache \
     g++ \
     liburing-dev \
     linux-headers \
-    make \
+    ninja \
     py-pip
 
 # Install conan package manager
@@ -27,7 +27,7 @@ RUN conan install .. --build=missing
 
 # Configure, build with static musl/libc and libstdc++ so we can run on the
 # scratch empty base image
-RUN cmake -B . -S .. \
+RUN cmake .. -GNinja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake \
     -DENABLE_STANDALONE=ON \

@@ -18,6 +18,8 @@ namespace asio = boost::asio;
 template <typename Acceptor, typename Handler>
 asio::awaitable<void> accept(Acceptor acceptor, Handler handler)
 {
+    using tcp = asio::ip::tcp;
+
     for (;;) {
         boost::system::error_code ec;
 
@@ -28,12 +30,15 @@ asio::awaitable<void> accept(Acceptor acceptor, Handler handler)
             break;
         }
 
+        stream.set_option(tcp::no_delay{true}, ec);
+
+        if (ec) {
+            continue;
+        }
+
         // Run coroutine to handle one http connection
         co_spawn(
-            acceptor.get_executor(),
-            session(
-                std::move(stream), handler,
-                std::make_optional<session_stats>()),
+            acceptor.get_executor(), session(std::move(stream), handler, {}),
             [](auto ptr, auto stats) {
                 // Propagate exception from the coroutine
                 if (ptr) {

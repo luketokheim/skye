@@ -7,9 +7,9 @@
 
 namespace httpmicroservice {
 
-response make_response(request req)
+response make_response(const request& req)
 {
-    return response(http::status::ok, req.version());
+    return response{http::status::ok, req.version()};
 }
 
 int run(int port, request_handler handler)

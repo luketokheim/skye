@@ -10,7 +10,7 @@
 #include <fmt/core.h>
 
 #include <chrono>
-#include <string>
+#include <functional>
 
 namespace httpmicroservice {
 
@@ -25,14 +25,16 @@ struct session_stats {
     int num_request{0};
     int bytes_read{0};
     int bytes_write{0};
-    std::chrono::steady_clock::duration duration{};
+    std::chrono::steady_clock::time_point start_time{};
+    std::chrono::steady_clock::time_point end_time{};
 };
 
 } // namespace httpmicroservice
 
 template <>
 struct fmt::formatter<httpmicroservice::session_stats> {
-    constexpr auto parse(format_parse_context& ctx) {
+    constexpr auto parse(format_parse_context& ctx)
+    {
         return ctx.begin();
     }
 
@@ -45,6 +47,7 @@ struct fmt::formatter<httpmicroservice::session_stats> {
             "{{\"fd\": {}, \"num_request\": {}, \"bytes_read\": {}, "
             "\"bytes_write\": {}, \"duration\": {}}}",
             stats.fd, stats.num_request, stats.bytes_read, stats.bytes_write,
-            std::chrono::duration<double>(stats.duration).count());
+            std::chrono::duration<double>(stats.end_time - stats.start_time)
+                .count());
     }
 };
