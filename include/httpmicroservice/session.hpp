@@ -10,8 +10,9 @@
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/redirect_error.hpp>
 #include <boost/asio/use_awaitable.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/http/read.hpp>
+#include <boost/beast/http/write.hpp>
 
 #include <chrono>
 #include <functional>
@@ -21,28 +22,26 @@ namespace httpmicroservice {
 
 namespace asio = boost::asio;
 
-constexpr auto kRequestSizeLimit = 1 << 20;
+// 1 MB request limit
+constexpr auto kRequestSizeLimit = 1000 * 1000;
 
 template <typename AsyncStream, typename Handler>
 asio::awaitable<std::optional<session_stats>>
 session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
 {
-    std::chrono::steady_clock::time_point start_time;
     if (stats) {
         stats->fd = stream.native_handle();
-        start_time = std::chrono::steady_clock::now();
+        stats->start_time = std::chrono::steady_clock::now();
     }
 
     boost::beast::flat_buffer buffer(kRequestSizeLimit);
     boost::system::error_code ec;
 
-    // stream.set_option(asio::ip::tcp::no_delay{true}, ec);
-
     for (;;) {
         // req = read(...)
         request req;
         {
-            auto bytes_read = co_await http::async_read(
+            const auto bytes_read = co_await http::async_read(
                 stream, buffer, req,
                 asio::redirect_error(asio::use_awaitable, ec));
 
@@ -60,7 +59,7 @@ session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
             }
         }
 
-        auto keep_alive = req.keep_alive();
+        const auto keep_alive = req.keep_alive();
 
         // res = handler(req)
         response res = co_await std::invoke(handler, std::move(req));
@@ -68,7 +67,7 @@ session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
         res.keep_alive(keep_alive);
 
         // write(res)
-        auto bytes_write = co_await http::async_write(
+        const auto bytes_write = co_await http::async_write(
             stream, res, asio::redirect_error(asio::use_awaitable, ec));
 
         if (ec) {
@@ -87,7 +86,7 @@ session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
     }
 
     if (stats) {
-        stats->duration = std::chrono::steady_clock::now() - start_time;
+        stats->end_time = std::chrono::steady_clock::now();
     }
 
     co_return stats;
