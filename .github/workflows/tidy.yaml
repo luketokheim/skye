@@ -1,0 +1,62 @@
+name: tidy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install build tools
+      run: >
+        sudo apt-get update
+        && sudo apt-get install -y clang-14 ninja-build pip
+
+    - name: Install package manager
+      run: >
+        pip install conan
+        && conan profile new tidy --detect
+        && conan profile update settings.build_type=Release tidy
+        && conan profile update settings.compiler=clang tidy
+        && conan profile update settings.compiler.version=14 tidy
+        && conan profile update settings.compiler.libcxx=libc++ tidy
+
+    - name: Install dependencies
+      #
+      # Download packages listed in our manifest. Generate toolchain file for
+      # CMake so that we can use find_package(...) to find deps
+      #
+      env:
+        CC: clang-14
+        CXX: clang++-14
+      run: >
+        install -d build
+        && cd build
+        && conan install .. --build=missing --profile=tidy
+
+    - name: Configure
+      #
+      # Configure CMake in the "build" subdirectory.
+      #
+      working-directory: build
+      run: >
+        cmake .. -GNinja
+        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_CXX_COMPILER=clang++-14
+        -DCMAKE_CXX_CLANG_TIDY=clang-tidy-14
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+        -DBUILD_TESTING=OFF
+
+    - name: Build
+      #
+      # Build all enabled programs with the current configuration.
+      #
+      working-directory: build
+      run: cmake --build . --config Release
