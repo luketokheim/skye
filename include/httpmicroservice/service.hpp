@@ -10,6 +10,7 @@
 #include <boost/asio/use_awaitable.hpp>
 
 #include <exception>
+#include <type_traits>
 
 namespace httpmicroservice {
 
@@ -21,8 +22,8 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
 {
     using tcp = asio::ip::tcp;
 
-    // constexpr auto report_stats =
-    //    std::is_invocable_v<Reporter, const session_stats&>;
+    constexpr bool kEnableStats =
+        std::is_invocable_v<Reporter, const session_stats&>;
 
     for (;;) {
         boost::system::error_code ec;
@@ -41,7 +42,7 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
         }
 
         std::optional<session_stats> stats;
-        if (reporter) {
+        if constexpr (kEnableStats) {
             stats = std::make_optional<session_stats>();
         }
 
@@ -49,20 +50,17 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
         co_spawn(
             acceptor.get_executor(),
             session(std::move(stream), handler, std::move(stats)),
-            [&reporter](
-                std::exception_ptr ptr, std::optional<session_stats> stats) {
+            [&reporter](auto ptr, auto stats) {
                 // Propagate exception from the coroutine
                 if (ptr) {
                     std::rethrow_exception(ptr);
                 }
 
-                if (reporter && stats) {
-                    reporter(*stats);
+                if constexpr (kEnableStats) {
+                    if (reporter && stats) {
+                        reporter(*stats);
+                    }
                 }
-
-                // if (stats) {
-                //     fmt::print("{}\n", *stats);
-                // }
             });
     }
 }
@@ -86,7 +84,7 @@ void async_run(Executor ex, int port, Handler handler, Reporter reporter)
     // Run coroutine to listen on our port
     co_spawn(
         ex, listen(port, std::move(handler), std::move(reporter)),
-        [](std::exception_ptr ptr) {
+        [](auto ptr) {
             // Propagate exception from the coroutine
             if (ptr) {
                 std::rethrow_exception(ptr);
@@ -95,8 +93,7 @@ void async_run(Executor ex, int port, Handler handler, Reporter reporter)
 }
 
 template <typename Executor, typename Handler>
-std::function<asio::awaitable<response>(request)>
-make_co_handler(Executor ex, Handler handler)
+auto make_co_handler(Executor ex, Handler handler)
 {
     return [ex, handler](request req) -> asio::awaitable<response> {
         auto res =

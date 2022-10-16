@@ -41,11 +41,22 @@ TEST_CASE("run_async")
         co_return res;
     };
 
+    auto reporter = [](const usrv::session_stats& stats) {
+        REQUIRE(stats.fd > 0);
+
+        if (stats.num_request > 0) {
+            REQUIRE(stats.bytes_read > 0);
+            REQUIRE(stats.bytes_write > 0);
+            REQUIRE(stats.end_time > stats.start_time);
+        }
+    };
+
     // Run server in its own thread so we can call ctx.stop() from main
     asio::io_context ctx;
     auto server =
         std::async(std::launch::async, [&ctx, awaitable_handler, reporter]() {
-            usrv::async_run(ctx.get_executor(), kPort, awaitable_handler);
+            usrv::async_run(
+                ctx.get_executor(), kPort, awaitable_handler, reporter);
 
             ctx.run_for(5s);
         });
@@ -58,7 +69,8 @@ TEST_CASE("run_async")
         asio::io_context ctx;
 
         tcp::resolver resolver(ctx);
-        auto endpoint = *resolver.resolve("127.0.0.1", std::to_string(kPort));
+        const tcp::endpoint endpoint =
+            *resolver.resolve("127.0.0.1", std::to_string(kPort));
 
         boost::system::error_code ec;
 

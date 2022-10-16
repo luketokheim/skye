@@ -1,4 +1,5 @@
 #include <httpmicroservice.hpp>
+#include <httpmicroservice/format.hpp>
 #include <httpmicroservice/service.hpp>
 
 #include <boost/asio/signal_set.hpp>
@@ -21,6 +22,11 @@ asio::awaitable<usrv::response> handler(usrv::request req)
     co_return res;
 }
 
+void reporter(const usrv::session_stats& stats)
+{
+    fmt::print("{}\n", stats);
+}
+
 int main()
 {
     try {
@@ -33,7 +39,7 @@ int main()
 
         usrv::async_run(
             ioc.get_executor(), port, usrv::make_co_handler(ex, handler),
-            usrv::session_stats_reporter{});
+            false);
 
         // SIGTERM is sent by Docker to ask us to stop (politely)
         // SIGINT handles local Ctrl+C in a terminal

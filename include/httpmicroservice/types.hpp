@@ -28,6 +28,4 @@ struct session_stats {
     std::chrono::steady_clock::time_point end_time{};
 };
 
-using session_stats_reporter = std::function<void(const session_stats&)>;
-
 } // namespace httpmicroservice
