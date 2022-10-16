@@ -4,10 +4,8 @@
 
 namespace httpmicroservice {
 
-int run(int port, request_handler handler);
+response make_response(const request& req);
 
 int getenv_port();
-
-response make_response(const request& req);
 
 } // namespace httpmicroservice

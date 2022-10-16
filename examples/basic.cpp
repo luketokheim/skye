@@ -5,6 +5,7 @@
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/signal_set.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <fmt/core.h>
@@ -17,7 +18,8 @@ namespace beast = boost::beast;
 namespace http = beast::http;
 using tcp = asio::ip::tcp;
 
-const auto kRequestSizeLimit = 1024 * 32;
+constexpr auto kListenPort = 8080;
+constexpr auto kRequestSizeLimit = 1024 * 32;
 
 class session : public std::enable_shared_from_this<session> {
 public:
@@ -82,7 +84,7 @@ private:
 
 class server {
 public:
-    explicit server(asio::io_context& ioc) : acceptor_(ioc, {tcp::v4(), 8080})
+    explicit server(asio::io_context& ioc) : acceptor_(ioc, {tcp::v4(), kListenPort})
     {
         do_accept();
     }
@@ -109,6 +111,11 @@ int main()
         asio::io_context ioc;
 
         server s(ioc);
+
+        // SIGTERM is sent by Docker to ask us to stop (politely)
+        // SIGINT handles local Ctrl+C in a terminal
+        asio::signal_set signals(ioc, SIGINT, SIGTERM);
+        signals.async_wait([&ioc](auto ec, auto sig) { ioc.stop(); });
 
         ioc.run();
 

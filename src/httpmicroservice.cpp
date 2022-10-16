@@ -4,27 +4,13 @@
 
 #include <charconv>
 #include <exception>
+#include <string_view>
 
 namespace httpmicroservice {
 
 response make_response(const request& req)
 {
     return response{http::status::ok, req.version()};
-}
-
-int run(int port, request_handler handler)
-{
-    asio::io_context ctx;
-
-    async_run(
-        ctx.get_executor(), port,
-        [handler](request req) -> asio::awaitable<response> {
-            co_return handler(std::move(req));
-        });
-
-    ctx.run();
-
-    return 0;
 }
 
 int getenv_port()
@@ -42,8 +28,12 @@ int getenv_port()
 
     int port = kDefaultPort;
 
-    if (std::from_chars(env, env + std::strlen(env), port).ec != std::errc{}) {
-        throw std::invalid_argument("PORT is not a number");
+    {
+        const std::string_view str{env};
+        if (std::from_chars(str.data(), str.data() + str.size(), port).ec !=
+            std::errc{}) {
+            throw std::invalid_argument("PORT is not a number");
+        }
     }
 
     if ((port < kMinPort) || (port > kMaxPort)) {
