@@ -59,7 +59,7 @@ session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
             }
         }
 
-        const auto keep_alive = req.keep_alive();
+        const bool keep_alive = req.keep_alive();
 
         // res = handler(req)
         response res = co_await std::invoke(handler, std::move(req));

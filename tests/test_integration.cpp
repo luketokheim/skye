@@ -14,7 +14,7 @@
 #include <string>
 #include <thread>
 
-TEST_CASE("run_async")
+TEST_CASE("async_run", "[service]")
 {
     using namespace std::chrono_literals;
     namespace asio = boost::asio;
@@ -114,4 +114,22 @@ TEST_CASE("run_async")
 
     REQUIRE(server.wait_for(2s) == std::future_status::ready);
     REQUIRE_NOTHROW(server.get());
+}
+
+TEST_CASE("make_co_handler", "[service]")
+{
+    asio::io_context ctx;
+
+    auto awaitable_handler = [](auto req) -> asio::awaitable<usrv::response> {
+        co_return usrv::response{};
+    };
+
+    {
+        auto co_handler =
+            usrv::make_co_handler(ctx.get_executor(), awaitable_handler);
+    }
+
+    {
+        auto co_handler = usrv::make_co_handler(ctx, awaitable_handler);
+    }
 }
