@@ -27,6 +27,7 @@ int main()
 
         auto ioc = asio::io_context{};
 
+        // Single threaded. The request handler runs in the I/O thread.
         usrv::async_run(ioc.get_executor(), port, handler, false);
 
         // SIGTERM is sent by Docker to ask us to stop (politely)

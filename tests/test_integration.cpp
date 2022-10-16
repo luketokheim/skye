@@ -118,18 +118,17 @@ TEST_CASE("async_run", "[service]")
 
 TEST_CASE("make_co_handler", "[service]")
 {
+    namespace asio = boost::asio;
+    namespace usrv = httpmicroservice;
+
     asio::io_context ctx;
 
     auto awaitable_handler = [](auto req) -> asio::awaitable<usrv::response> {
         co_return usrv::response{};
     };
 
-    {
-        auto co_handler =
-            usrv::make_co_handler(ctx.get_executor(), awaitable_handler);
-    }
+    auto co_handler =
+        usrv::make_co_handler(ctx.get_executor(), awaitable_handler);
 
-    {
-        auto co_handler = usrv::make_co_handler(ctx, awaitable_handler);
-    }
+    REQUIRE(ctx.run() == 0);
 }

@@ -34,12 +34,14 @@ int main()
 
         auto ioc = asio::io_context{};
 
-        asio::thread_pool pool(1);
+        asio::thread_pool pool{1};
         auto ex = pool.get_executor();
 
+        // 2 threads. One for the http server I/O and one for the request
+        // handler. Print session stats to stdout.
         usrv::async_run(
             ioc.get_executor(), port, usrv::make_co_handler(ex, handler),
-            false);
+            reporter);
 
         // SIGTERM is sent by Docker to ask us to stop (politely)
         // SIGINT handles local Ctrl+C in a terminal
