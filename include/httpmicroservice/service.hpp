@@ -15,10 +15,14 @@ namespace httpmicroservice {
 
 namespace asio = boost::asio;
 
-template <typename Acceptor, typename Handler>
-asio::awaitable<void> accept(Acceptor acceptor, Handler handler)
+template <typename Acceptor, typename Handler, typename Reporter>
+asio::awaitable<void>
+accept(Acceptor acceptor, Handler handler, Reporter reporter)
 {
     using tcp = asio::ip::tcp;
+
+    // constexpr auto report_stats =
+    //    std::is_invocable_v<Reporter, const session_stats&>;
 
     for (;;) {
         boost::system::error_code ec;
@@ -36,24 +40,35 @@ asio::awaitable<void> accept(Acceptor acceptor, Handler handler)
             continue;
         }
 
+        std::optional<session_stats> stats;
+        if (reporter) {
+            stats = std::make_optional<session_stats>();
+        }
+
         // Run coroutine to handle one http connection
         co_spawn(
-            acceptor.get_executor(), session(std::move(stream), handler, {}),
-            [](auto ptr, auto stats) {
+            acceptor.get_executor(),
+            session(std::move(stream), handler, std::move(stats)),
+            [&reporter](
+                std::exception_ptr ptr, std::optional<session_stats> stats) {
                 // Propagate exception from the coroutine
                 if (ptr) {
                     std::rethrow_exception(ptr);
                 }
 
-                if (stats) {
-                    fmt::print("{}\n", *stats);
+                if (reporter && stats) {
+                    reporter(*stats);
                 }
+
+                // if (stats) {
+                //     fmt::print("{}\n", *stats);
+                // }
             });
     }
 }
 
-template <typename Handler>
-asio::awaitable<void> listen(int port, Handler handler)
+template <typename Handler, typename Reporter>
+asio::awaitable<void> listen(int port, Handler handler, Reporter reporter)
 {
     using tcp = asio::ip::tcp;
 
@@ -61,23 +76,27 @@ asio::awaitable<void> listen(int port, Handler handler)
 
     tcp::acceptor acceptor(co_await asio::this_coro::executor, endpoint);
 
-    co_await accept(std::move(acceptor), std::move(handler));
+    co_await accept(
+        std::move(acceptor), std::move(handler), std::move(reporter));
 }
 
-template <typename Executor, typename Handler>
-void async_run(Executor ex, int port, Handler handler)
+template <typename Executor, typename Handler, typename Reporter>
+void async_run(Executor ex, int port, Handler handler, Reporter reporter)
 {
     // Run coroutine to listen on our port
-    co_spawn(ex, listen(port, std::move(handler)), [](auto ptr) {
-        // Propagate exception from the coroutine
-        if (ptr) {
-            std::rethrow_exception(ptr);
-        }
-    });
+    co_spawn(
+        ex, listen(port, std::move(handler), std::move(reporter)),
+        [](std::exception_ptr ptr) {
+            // Propagate exception from the coroutine
+            if (ptr) {
+                std::rethrow_exception(ptr);
+            }
+        });
 }
 
 template <typename Executor, typename Handler>
-auto make_co_handler(Executor ex, Handler handler)
+std::function<asio::awaitable<response>(request)>
+make_co_handler(Executor ex, Handler handler)
 {
     return [ex, handler](request req) -> asio::awaitable<response> {
         auto res =

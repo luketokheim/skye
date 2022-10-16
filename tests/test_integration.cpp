@@ -43,11 +43,12 @@ TEST_CASE("run_async")
 
     // Run server in its own thread so we can call ctx.stop() from main
     asio::io_context ctx;
-    auto server = std::async(std::launch::async, [&ctx, awaitable_handler]() {
-        usrv::async_run(ctx.get_executor(), kPort, awaitable_handler);
+    auto server =
+        std::async(std::launch::async, [&ctx, awaitable_handler, reporter]() {
+            usrv::async_run(ctx.get_executor(), kPort, awaitable_handler);
 
-        ctx.run_for(5s);
-    });
+            ctx.run_for(5s);
+        });
 
     usrv::request req(http::verb::get, "/", kHttpVersion);
 

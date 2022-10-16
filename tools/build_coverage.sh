@@ -1,5 +1,8 @@
 #!/bin/sh
 
+export CC=clang-14
+export CXX=clang++-14
+
 conan profile new coverage --detect
 conan profile update settings.build_type=Debug coverage
 conan profile update settings.compiler=clang coverage
@@ -15,9 +18,9 @@ cmake -B . -S .. -GNinja \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
 
-cmake --build . --config Debug
+cmake --build . --config Debug -j 8
 
 export LLVM_PROFILE_FILE=coverage.profraw
 ctest -C Debug
-llvm-profdata-14 merge -sparse test/coverage.profraw -o test/coverage.profdata
-llvm-cov-14 show ./test/httpmicroservice_test -instr-profile=test/coverage.profdata >coverage.txt
+llvm-profdata-14 merge -sparse tests/coverage.profraw -o tests/coverage.profdata
+llvm-cov-14 show ./tests/usrv-test -instr-profile=tests/coverage.profdata >coverage.txt
