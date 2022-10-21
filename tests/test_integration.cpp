@@ -121,14 +121,33 @@ TEST_CASE("make_co_handler", "[service]")
     namespace asio = boost::asio;
     namespace usrv = httpmicroservice;
 
-    asio::io_context ctx;
+    asio::io_context ioc;
 
-    auto awaitable_handler = [](auto req) -> asio::awaitable<usrv::response> {
+    const auto tid = std::this_thread::get_id();
+
+    auto awaitable_handler =
+        [tid](usrv::request req) -> asio::awaitable<usrv::response> {
+        REQUIRE(tid != std::this_thread::get_id());
+
+        throw std::exception{};
         co_return usrv::response{};
     };
 
-    auto co_handler =
-        usrv::make_co_handler(ctx.get_executor(), awaitable_handler);
+    asio::thread_pool pool{1};
 
-    REQUIRE(ctx.run() == 0);
+    auto co_handler =
+        usrv::make_co_handler(pool.get_executor(), awaitable_handler);
+
+    co_spawn(
+        ioc,
+        [co_handler]() -> asio::awaitable<void> {
+            usrv::request req(usrv::http::verb::get, "/", 11);
+            co_await co_handler(req);
+        },
+        [](auto ptr) {
+            REQUIRE(ptr);
+            std::rethrow_exception(ptr);
+        });
+
+    REQUIRE_THROWS(ioc.run());
 }

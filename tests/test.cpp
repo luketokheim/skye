@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <httpmicroservice.hpp>
+#include <httpmicroservice/format.hpp>
 
 #include <array>
 #include <cstdlib>
@@ -57,3 +58,12 @@ TEST_CASE("getenv_port", "[usrv]")
 }
 
 #endif // _WIN32
+
+TEST_CASE("format", "[usrv]")
+{
+    usrv::session_stats stats{};
+
+    const std::string str = fmt::format("{}", stats);
+
+    REQUIRE(!str.empty());
+}
