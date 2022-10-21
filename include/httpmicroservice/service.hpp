@@ -16,6 +16,18 @@ namespace httpmicroservice {
 
 namespace asio = boost::asio;
 
+/**
+  The service connection accept loop. Launch a coroutine for each incoming
+  socket stream connection.
+
+  loop {
+      stream = accept()
+
+      // One coroutine per session. When it is complete, call the Reporter
+      // with the session stats.
+      stats = await session(stream)
+  }
+ */
 template <typename Acceptor, typename Handler, typename Reporter>
 asio::awaitable<void>
 accept(Acceptor acceptor, Handler handler, Reporter reporter)
@@ -65,6 +77,10 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
     }
 }
 
+/**
+  Bind and listen for incoming connections on the specified port on all
+  IP addresses.
+ */
 template <typename Handler, typename Reporter>
 asio::awaitable<void> listen(int port, Handler handler, Reporter reporter)
 {
@@ -78,6 +94,10 @@ asio::awaitable<void> listen(int port, Handler handler, Reporter reporter)
         std::move(acceptor), std::move(handler), std::move(reporter));
 }
 
+/**
+  Run the server in a coroutine. Convenient to call similar to asio::async_*
+  functions.
+ */
 template <typename Executor, typename Handler, typename Reporter>
 void async_run(Executor ex, int port, Handler handler, Reporter reporter)
 {
@@ -92,6 +112,12 @@ void async_run(Executor ex, int port, Handler handler, Reporter reporter)
         });
 }
 
+/**
+  Wrap a HTTP request handler in its own coroutine. Intended for use with a
+  different Executor not running in the main I/O thread. This is the mechanism
+  to use asio::thread_pool::get_executor to run the handlers outside the service
+  I/O thread.
+ */
 template <typename Executor, typename Handler>
 auto make_co_handler(Executor ex, Handler handler)
 {

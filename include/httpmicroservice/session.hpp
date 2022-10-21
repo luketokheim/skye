@@ -25,6 +25,19 @@ namespace asio = boost::asio;
 // 1 MB request limit
 constexpr auto kRequestSizeLimit = 1000 * 1000;
 
+/**
+  The HTTP session loop. In this context, a session is multiple HTTP/1.1
+  requests with implicit keep alive over one TCP socket stream. The requests
+  are serialized one after the other.
+
+  loop {
+      request = read(stream)
+
+      response = handler(request)
+
+      write(stream, response)
+  }
+ */
 template <typename AsyncStream, typename Handler>
 asio::awaitable<std::optional<session_stats>>
 session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
