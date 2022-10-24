@@ -22,16 +22,16 @@ asio::awaitable<usrv::response> hello(usrv::request req)
 int main()
 {
     try {
-        const auto port = usrv::getenv_port();
+        const int port = usrv::getenv_port();
 
-        auto ioc = asio::io_context{};
+        asio::io_context ioc;
 
         // Single threaded. The request handler runs in the http service thread.
         usrv::async_run(ioc, port, hello);
 
         // SIGTERM is sent by Docker to ask us to stop (politely)
         // SIGINT handles local Ctrl+C in a terminal
-        asio::signal_set signals(ioc, SIGINT, SIGTERM);
+        asio::signal_set signals{ioc, SIGINT, SIGTERM};
         signals.async_wait([&ioc](auto ec, auto sig) { ioc.stop(); });
 
         ioc.run();

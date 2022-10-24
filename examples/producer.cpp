@@ -43,9 +43,9 @@ void reporter(const usrv::session_stats& stats)
 int main()
 {
     try {
-        const auto port = usrv::getenv_port();
+        const int port = usrv::getenv_port();
 
-        auto ioc = asio::io_context{};
+        asio::io_context ioc;
 
         asio::thread_pool pool{1};
         auto ex = pool.get_executor();
@@ -59,7 +59,7 @@ int main()
 
         // SIGTERM is sent by Docker to ask us to stop (politely)
         // SIGINT handles local Ctrl+C in a terminal
-        asio::signal_set signals(ioc, SIGINT, SIGTERM);
+        asio::signal_set signals{ioc, SIGINT, SIGTERM};
         signals.async_wait([&ioc](auto ec, auto sig) { ioc.stop(); });
 
         ioc.run();
