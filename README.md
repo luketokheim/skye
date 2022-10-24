@@ -2,6 +2,7 @@
 
 [![sanitizer](https://github.com/luketokheim/httpmicroservice-cpp/actions/workflows/sanitizer.yaml/badge.svg)](https://github.com/luketokheim/httpmicroservice-cpp/actions/workflows/sanitizer.yaml)
 [![test](https://github.com/luketokheim/httpmicroservice-cpp/actions/workflows/test.yaml/badge.svg)](https://github.com/luketokheim/httpmicroservice-cpp/actions/workflows/test.yaml)
+[![tidy](https://github.com/luketokheim/httpmicroservice-cpp/actions/workflows/tidy.yaml/badge.svg)](https://github.com/luketokheim/httpmicroservice-cpp/actions/workflows/tidy.yaml)
 
 Run your C++ function as a containerized web service.
 
