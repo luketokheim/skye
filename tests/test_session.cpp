@@ -5,7 +5,6 @@
 #include "mock_sock.hpp"
 #include "test.hpp"
 
-#include <boost/asio.hpp>
 #include <boost/asio/co_spawn.hpp>
 
 #include <vector>

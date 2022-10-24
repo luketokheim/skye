@@ -1,21 +1,11 @@
-#include <catch2/catch_test_macros.hpp>
-
 #include <httpmicroservice.hpp>
-#include <httpmicroservice/format.hpp>
+
+#include <catch2/catch_test_macros.hpp>
 
 #include <array>
 #include <cstdlib>
 
 namespace usrv = httpmicroservice;
-
-TEST_CASE("make_response", "[usrv]")
-{
-    usrv::request req;
-    auto res = usrv::make_response(req);
-
-    REQUIRE(res.result_int() == 200);
-    REQUIRE(req.version() == res.version());
-}
 
 #if !defined(_WIN32)
 

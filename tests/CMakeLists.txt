@@ -2,29 +2,19 @@ find_package(Catch2 REQUIRED)
 # find_package(Python)
 
 add_executable(
-    usrv-test test.cpp test_integration.cpp test_session.cpp)
+    usrv-test
+    test.cpp
+    test_service.cpp
+    test_session.cpp)
+
 target_include_directories(usrv-test PRIVATE .)
+
 target_link_libraries(
     usrv-test PRIVATE
     httpmicroservice::httpmicroservice
     Catch2::Catch2WithMain)
 
 add_test(UnitTests usrv-test)
-
-option(
-    ENABLE_TEST_FUZZER
-    "Enable fuzzer test"
-    OFF)
-if(ENABLE_TEST_FUZZER)
-    add_executable(usrv-fuzzer test_fuzzer.cpp)
-    target_compile_options(
-        usrv-fuzzer PRIVATE -fsanitize=fuzzer)
-    target_link_options(usrv-fuzzer PRIVATE -fsanitize=fuzzer)
-    target_link_libraries(
-        usrv-fuzzer PRIVATE httpmicroservice::httpmicroservice)
-    
-    add_test(FuzzerTests usrv-fuzzer)
-endif()
 
 # Run client requests to test server
 # python tests/make_client_requests.py usrv-test
