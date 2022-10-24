@@ -35,6 +35,17 @@ void reporter(const usrv::session_stats& stats)
     fmt::print("{}\n", stats);
 }
 
+struct thread_list_joiner {
+    ~thread_list_joiner()
+    {
+        for (auto& item : threads) {
+            item.join();
+        }
+    }
+
+    std::vector<std::thread> threads;
+};
+
 int main()
 {
     try {
@@ -50,20 +61,18 @@ int main()
         signals.async_wait([&ioc](auto ec, auto sig) { ioc.stop(); });
 
         const int num_thread =
-            std::min(static_cast<int>(std::thread::hardware_concurrency()), 4);
+            static_cast<int>(std::thread::hardware_concurrency());
 
-        std::vector<std::jthread> thread_list;
+        // std::vector<std::jthread> thread_list;
+        thread_list_joiner list;
         if (num_thread > 1) {
             if (!set_thread_affinity(0)) {
-                fmt::print(stderr, "failed to set thread {} affinity", 0);
                 return -1;
             }
 
             for (int i = 1; i < num_thread; ++i) {
-                thread_list.push_back(std::jthread{[&ioc, i]() {
+                list.threads.push_back(std::thread{[&ioc, i]() {
                     if (!set_thread_affinity(i)) {
-                        fmt::print(
-                            stderr, "failed to set thread {} affinity", i);
                         return;
                     }
 
