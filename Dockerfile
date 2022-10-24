@@ -35,15 +35,15 @@ RUN cmake .. -GNinja \
     -DBUILD_TESTING=OFF
 
 # Build
-RUN cmake --build . --config Release
+RUN cmake --build .
 
 # Install
-RUN cmake --install . --config Release
-RUN strip /usr/local/bin/usrv-example
+RUN cmake --install .
+RUN strip /usr/local/bin/usrv-hello
 
 FROM scratch as runtime
 
-COPY --from=builder /usr/local/bin/usrv-example /usrv
+COPY --from=builder /usr/local/bin/usrv-hello /usrv
 
 ENV PORT=8080
 
