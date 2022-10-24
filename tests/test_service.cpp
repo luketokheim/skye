@@ -1,11 +1,10 @@
-#include <catch2/catch_test_macros.hpp>
-
 #include <httpmicroservice/service.hpp>
+
+#include <catch2/catch_test_macros.hpp>
 
 #include "test.hpp"
 
 #include <boost/asio.hpp>
-#include <boost/beast.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 
