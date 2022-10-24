@@ -19,10 +19,12 @@ asio::awaitable<usrv::response> producer(usrv::request req)
 {
     using namespace std::chrono_literals;
 
+    constexpr auto kSimulatedDelay = 100ms;
+
     // If your handler might take some time and does not support async then
     // you should use your own thread so that the server can keep handling
     // requests.
-    std::this_thread::sleep_for(100ms);
+    std::this_thread::sleep_for(kSimulatedDelay);
 
     usrv::response res(http::status::ok, req.version());
     res.set(http::field::content_type, "application/json");
