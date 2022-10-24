@@ -35,6 +35,8 @@ void reporter(const usrv::session_stats& stats)
     fmt::print("{}\n", stats);
 }
 
+// Work around since we do not have std::jthread available on all platforms.
+// Call join on a list of threads when this object goes out of scope.
 struct thread_list_joiner {
     ~thread_list_joiner()
     {
@@ -63,15 +65,14 @@ int main()
         const int num_thread =
             static_cast<int>(std::thread::hardware_concurrency());
 
-        // std::vector<std::jthread> thread_list;
-        thread_list_joiner list;
+        thread_list_joiner joiner;
         if (num_thread > 1) {
             if (!set_thread_affinity(0)) {
                 return -1;
             }
 
             for (int i = 1; i < num_thread; ++i) {
-                list.threads.push_back(std::thread{[&ioc, i]() {
+                joiner.threads.push_back(std::thread{[&ioc, i]() {
                     if (!set_thread_affinity(i)) {
                         return;
                     }
