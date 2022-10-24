@@ -1,10 +1,5 @@
 #pragma once
 
-/// Set _WIN32_WINNT to the default for current Windows SDK
-#if defined(_WIN32) && !defined(_WIN32_WINNT)
-#include <SDKDDKVer.h>
-#endif
-
 #include <httpmicroservice/types.hpp>
 
 #include <boost/asio/awaitable.hpp>
@@ -15,7 +10,6 @@
 #include <boost/beast/http/write.hpp>
 
 #include <chrono>
-#include <functional>
 #include <optional>
 
 namespace httpmicroservice {

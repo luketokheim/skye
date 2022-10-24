@@ -1,5 +1,3 @@
-#include <httpmicroservice.hpp>
-
 #include <httpmicroservice/service.hpp>
 
 #include <charconv>
@@ -7,11 +5,6 @@
 #include <string_view>
 
 namespace httpmicroservice {
-
-response make_response(const request& req)
-{
-    return response{http::status::ok, req.version()};
-}
 
 int getenv_port()
 {

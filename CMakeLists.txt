@@ -1,10 +1,9 @@
-# cxx_std_20 requires 3.12
 # conan generator requires 3.15
 cmake_minimum_required(VERSION 3.15)
 
 project(httpmicroservice)
 
-add_library(httpmicroservice src/httpmicroservice.cpp)
+add_library(httpmicroservice src/service.cpp)
 add_library(httpmicroservice::httpmicroservice ALIAS httpmicroservice)
 
 target_compile_features(httpmicroservice PUBLIC cxx_std_20)
@@ -57,6 +56,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
     set(LIBRARY_PUBLIC_HEADERS
         include/httpmicroservice.hpp
+        include/httpmicroservice/format.hpp
         include/httpmicroservice/service.hpp
         include/httpmicroservice/session.hpp
         include/httpmicroservice/types.hpp)
