@@ -1,6 +1,6 @@
 #pragma once
 
-/// Set _WIN32_WINNT to the default for current Windows SDK
+/// Sets _WIN32_WINNT to the default for current Windows SDK
 #if defined(_WIN32) && !defined(_WIN32_WINNT)
 #include <SDKDDKVer.h>
 #endif
@@ -9,23 +9,22 @@
 #include <boost/beast/http/string_body.hpp>
 
 #include <chrono>
-#include <functional>
 
 namespace httpmicroservice {
 
 namespace http = boost::beast::http;
 
 /**
-  Rationale: We intend to create callable microservices that will likely receive
-  binary or JSON data in the body of the request. Make it simple to retrieve the
-  std::string.
+  Rationale: We intend to create callable microservices that will receive
+  binary, image, or JSON data in the body of the request. Make it simple to
+  retrieve the entire body as a std::string.
  */
 using request = http::request<http::string_body>;
 
 /**
-  Rationale: We intend to run a C++ function and return the results as JSON
-  data in the body. Since the results are all in memory (not in a file) make it
-  simple to set with a std::string.
+  Rationale: We intend to run a function and return the results in the body of
+  the response. Since the results are all in memory make it simple to set the
+  body with a std::string.
  */
 using response = http::response<http::string_body>;
 

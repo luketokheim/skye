@@ -69,7 +69,7 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
                 }
 
                 if constexpr (kEnableStats) {
-                    if (reporter && stats) {
+                    if (stats) {
                         reporter(*stats);
                     }
                 }
@@ -95,8 +95,8 @@ asio::awaitable<void> listen(int port, Handler handler, Reporter reporter)
 }
 
 /**
-  Run the server in a coroutine. Convenient to call similar to asio::async_*
-  functions.
+  Run the server in a coroutine. Convenient to call similar to asio::async_read
+  style free functions.
  */
 template <typename Executor, typename Handler, typename Reporter>
 void async_run(Executor ex, int port, Handler handler, Reporter reporter)
@@ -110,6 +110,12 @@ void async_run(Executor ex, int port, Handler handler, Reporter reporter)
                 std::rethrow_exception(ptr);
             }
         });
+}
+
+template <typename ExecutionContext, typename Handler>
+void async_run(ExecutionContext& context, int port, Handler handler)
+{
+    async_run(context.get_executor(), port, std::move(handler), false);
 }
 
 /**
@@ -127,5 +133,14 @@ auto make_co_handler(Executor ex, Handler handler)
         co_return res;
     };
 }
+
+/**
+  Read the PORT environment variable. Returns 8080 if it is not set. Throws
+  exception if the PORT variable is not an integer between 1024 and 65535.
+
+  Cloud Run sets the PORT environment variable.
+  https://cloud.google.com/run/docs/container-contract#port
+ */
+int getenv_port();
 
 } // namespace httpmicroservice
