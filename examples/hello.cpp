@@ -1,9 +1,6 @@
-#include <httpmicroservice.hpp>
-#include <httpmicroservice/format.hpp>
 #include <httpmicroservice/service.hpp>
 
 #include <boost/asio/signal_set.hpp>
-#include <boost/asio/thread_pool.hpp>
 #include <fmt/core.h>
 
 #include <cstdio>
@@ -13,7 +10,7 @@ namespace asio = boost::asio;
 namespace usrv = httpmicroservice;
 namespace http = httpmicroservice::http;
 
-asio::awaitable<usrv::response> handler(usrv::request req)
+asio::awaitable<usrv::response> hello(usrv::request req)
 {
     usrv::response res(http::status::ok, req.version());
     res.set(http::field::content_type, "application/json");
@@ -22,26 +19,15 @@ asio::awaitable<usrv::response> handler(usrv::request req)
     co_return res;
 }
 
-void reporter(const usrv::session_stats& stats)
-{
-    fmt::print("{}\n", stats);
-}
-
 int main()
 {
     try {
-        auto port = usrv::getenv_port();
+        const auto port = usrv::getenv_port();
 
         auto ioc = asio::io_context{};
 
-        asio::thread_pool pool{1};
-        auto ex = pool.get_executor();
-
-        // 2 threads. One for the http server I/O and one for the request
-        // handler. Print session stats to stdout.
-        usrv::async_run(
-            ioc.get_executor(), port, usrv::make_co_handler(ex, handler),
-            reporter);
+        // Single threaded. The request handler runs in the http service thread.
+        usrv::async_run(ioc, port, hello);
 
         // SIGTERM is sent by Docker to ask us to stop (politely)
         // SIGINT handles local Ctrl+C in a terminal
