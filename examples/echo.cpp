@@ -51,7 +51,7 @@ usrv::response get(const usrv::request& req)
 }
 
 // Route requests based on the method GET or POST
-asio::awaitable<usrv::response> route(usrv::request req)
+asio::awaitable<usrv::response> echo(usrv::request req)
 {
     switch (req.method()) {
     case http::verb::get:
@@ -73,7 +73,7 @@ int main()
 
         asio::io_context ioc;
 
-        usrv::async_run(ioc, port, route);
+        usrv::async_run(ioc, port, echo);
 
         // SIGTERM is sent by Docker to ask us to stop (politely)
         // SIGINT handles local Ctrl+C in a terminal

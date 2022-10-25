@@ -8,6 +8,6 @@ cmake .. \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
 
-cmake --build . --config Release -j 8
+cmake --build .
 
-ctest -C Release
+ctest --output-on-failure
