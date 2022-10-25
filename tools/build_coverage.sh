@@ -1,7 +1,7 @@
 #!/bin/sh
 
-export CC=clang
-export CXX=clang++
+export CC=clang-14
+export CXX=clang++-14
 
 conan profile new coverage --detect
 conan profile update settings.build_type=Debug coverage
@@ -19,4 +19,5 @@ cmake --build .
 export LLVM_PROFILE_FILE=coverage.profraw
 ctest --output-on-failure
 llvm-profdata-14 merge -sparse tests/coverage.profraw -o tests/coverage.profdata
-llvm-cov-14 show ./tests/usrv-test -instr-profile=tests/coverage.profdata >coverage.txt
+llvm-cov-14 show ./tests/usrv-test -format=html -instr-profile=tests/coverage.profdata ../src ../include >coverage.html
+llvm-cov-14 report ./tests/usrv-test -instr-profile=tests/coverage.profdata ../src ../include
