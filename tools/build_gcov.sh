@@ -1,5 +1,8 @@
 #!/bin/sh
 
+export CC=gcc
+export CXX=g++
+
 conan profile new gcov --detect
 conan profile update settings.build_type=Debug gcov
 conan install .. --build=missing --profile=gcov
@@ -14,6 +17,7 @@ cmake --build .
 
 ctest --output-on-failure
 
-# gcovr with jammy is buggy, use pip to get newer release
+# gcovr bundled with jammy is buggy, use pip to get newer release
 # pip install gcovr
-python -m gcovr -r .. --filter ../include/ --filter ../src/  --html-details coverage.html
+install -d coverage
+python -m gcovr -r .. --filter ../include/ --filter ../src/  --html-details coverage/coverage.html

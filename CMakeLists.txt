@@ -25,7 +25,11 @@ endif()
 find_package(Boost REQUIRED)
 find_package(fmt REQUIRED)
 
-target_link_libraries(httpmicroservice PUBLIC Boost::boost fmt::fmt)
+target_link_libraries(
+    httpmicroservice
+    PUBLIC
+    Boost::boost
+    fmt::fmt)
 
 option(
     ENABLE_STANDALONE
@@ -39,8 +43,8 @@ endif()
 find_library(URING_LIBRARY uring)
 option(
     ENABLE_IO_URING
-    "Enable the io_uring backend"
-    OFF)
+    "Enable the io_uring backend on Linux if liburing is found"
+    ON)
 if(ENABLE_IO_URING AND URING_LIBRARY)
     target_compile_definitions(
         httpmicroservice

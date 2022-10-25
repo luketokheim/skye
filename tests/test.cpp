@@ -16,10 +16,11 @@ TEST_CASE("getenv_port", "[usrv]")
     // back with std::getenv. This is intended for Docker Linux containers so
     // leave Windows out.
     constexpr auto kName = "PORT";
+    constexpr auto kPort = 8080;
 
     REQUIRE(unsetenv(kName) == 0);
 
-    REQUIRE(usrv::getenv_port() == 8080);
+    REQUIRE(usrv::getenv_port() == kPort);
 
     for (int port = 1024; port <= 65535; ++port) {
         const auto str = std::to_string(port);
@@ -34,7 +35,7 @@ TEST_CASE("getenv_port", "[usrv]")
         const auto str = std::to_string(port);
         REQUIRE(setenv(kName, str.c_str(), 1) == 0);
 
-        REQUIRE_THROWS(usrv::getenv_port());
+        REQUIRE(usrv::getenv_port() == kPort);
     }
 
     constexpr std::array<const char*, 4> kBadNumber = {
@@ -43,7 +44,7 @@ TEST_CASE("getenv_port", "[usrv]")
     for (auto str : kBadNumber) {
         REQUIRE(setenv(kName, str, 1) == 0);
 
-        REQUIRE_THROWS(usrv::getenv_port());
+        REQUIRE(usrv::getenv_port() == kPort);
     }
 }
 
