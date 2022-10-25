@@ -6,6 +6,48 @@
 
 Run your C++ function as a containerized web service.
 
+## Quick Start
+
+A minimal service needs a request handler that looks like this.
+
+```cpp
+asio::awaitable<usrv::response> hello_world(usrv::request req)
+{
+    usrv::response res(http::status::ok, req.version());
+    res.set(http::field::content_type, "text/plain");
+    res.body() = "Hello World!";
+
+    co_return res;
+}
+```
+
+And a main function.
+
+```cpp
+#include <httpmicroservice/service.hpp>
+
+namespace asio = boost::asio;
+namespace usrv = httpmicroservice;
+namespace http = httpmicroservice::http;
+
+int main()
+{
+      asio::io_context ioc;
+
+      // Listen on port 8080 and route all HTTP requests to the hello_world handler
+      usrv::async_run(ioc, 8080, hello_world);
+
+      // This will run the event loop until there is no more work to be done
+      ioc.run();
+
+      return 0;
+}
+```
+
+Asio has excellent docs and refer to those for details on [io_context](https://www.boost.org/doc/libs/1_80_0/doc/html/boost_asio/reference/io_context.html) and [awaitable](https://www.boost.org/doc/libs/1_80_0/doc/html/boost_asio/reference/awaitable.html).
+
+Build a Docker image that runs the [Hello World](examples/hello.cpp) web service.
+
 ```console
 docker build -t httpmicroservice-cpp .
 ```
@@ -47,6 +89,11 @@ Kohlhoff.
 - [Boost.Asio](https://think-async.com/Asio/) for network I/O
 - [Boost.Beast](https://github.com/boostorg/beast) to parse HTTP requests and form reponses
 
+I recommend installing io_uring on Linux if available. It is enabled on the Docker and
+Continuous Deployment (CD) builds and works on the Cloud Run
+[second generation](https://cloud.google.com/run/docs/about-execution-environments)
+execution environment.
+
 ## Compilers
 
 This project requires C++20 support for coroutines.
@@ -75,11 +122,11 @@ libraries with [find_package](https://cmake.org/cmake/help/latest/command/find_p
 
 ```console
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
-cmake --build . --config=Release
+cmake --build .
 ```
 
 Run tests.
 
 ```console
-ctest -C Release
+ctest
 ```
