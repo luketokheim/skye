@@ -1,16 +1,15 @@
 #include <httpmicroservice/service.hpp>
 
 #include <charconv>
-#include <exception>
 #include <string_view>
 
 namespace httpmicroservice {
 
 int getenv_port()
 {
-    constexpr auto kDefaultPort = 8080;
-    constexpr auto kMinPort = 1024;
-    constexpr auto kMaxPort = 65535;
+    constexpr int kDefaultPort = 8080;
+    constexpr int kMinPort = 1024;
+    constexpr int kMaxPort = 65535;
 
     // Cloud Run sets the PORT environment variable
     // https://cloud.google.com/run/docs/container-contract#port
@@ -25,12 +24,12 @@ int getenv_port()
         const std::string_view str{env};
         if (std::from_chars(str.data(), str.data() + str.size(), port).ec !=
             std::errc{}) {
-            throw std::invalid_argument("PORT is not a number");
+            return kDefaultPort;
         }
     }
 
     if ((port < kMinPort) || (port > kMaxPort)) {
-        throw std::invalid_argument("PORT is not between 1024 and 65535");
+        return kDefaultPort;
     }
 
     return port;

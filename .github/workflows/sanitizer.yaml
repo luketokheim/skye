@@ -14,6 +14,10 @@ jobs:
       matrix:
         sanitizer: ["address", "thread"]
 
+    env:
+      CC: clang-14
+      CXX: clang++-14
+
     steps:
     - uses: actions/checkout@v3
 
@@ -36,9 +40,6 @@ jobs:
       # Download packages listed in our manifest. Generate toolchain file for
       # CMake so that we can use find_package(...) to find deps
       #
-      env:
-        CC: clang-14
-        CXX: clang++-14
       run: >
         install -d build
         && cd build
@@ -52,17 +53,15 @@ jobs:
       run: >
         cmake .. -GNinja
         -DCMAKE_BUILD_TYPE=Debug
-        -DCMAKE_CXX_COMPILER=clang++-14
-        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-        -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
         -DCMAKE_CXX_FLAGS="-fsanitize=${{ matrix.sanitizer }}"
+        -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
 
     - name: Build
       #
       # Build all enabled programs with the current configuration.
       #
       working-directory: build
-      run: cmake --build . --config Debug
+      run: cmake --build .
 
     - name: Test
       #
@@ -77,4 +76,4 @@ jobs:
       env:
         ASAN_OPTIONS: detect_leaks=1:color=always:alloc_dealloc_mismatch=0
         TSAN_OPTIONS: halt_on_error=1:second_deadlock_stack=1
-      run: ctest --output-on-failure -C Debug
+      run: ctest --output-on-failure

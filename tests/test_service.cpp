@@ -150,3 +150,23 @@ TEST_CASE("make_co_handler", "[service]")
 
     REQUIRE_THROWS(ioc.run());
 }
+
+TEST_CASE("async_run_context", "[service]")
+{
+    namespace asio = boost::asio;
+    namespace http = boost::beast::http;
+    namespace usrv = httpmicroservice;
+
+    constexpr auto kPort = 8080;
+
+    auto handler = [](auto req) -> asio::awaitable<usrv::response> {
+        co_return usrv::response(http::status::ok, req.version());
+    };
+
+    // Run server in its own thread so we can call ctx.stop() from main
+    asio::io_context ctx;
+
+    auto server = std::async(std::launch::async, [&ctx, handler]() {
+        usrv::async_run(ctx, kPort, handler);
+    });
+}
