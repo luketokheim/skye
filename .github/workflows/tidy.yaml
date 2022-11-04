@@ -24,8 +24,7 @@ jobs:
 
     - name: Install package manager
       run: >
-        python3 -m ensurepip --upgrade
-        && python3 -m pip install conan
+        pip3 install conan --upgrade
         && conan profile new default --detect
         && conan profile update settings.compiler.libcxx=libc++ default
 

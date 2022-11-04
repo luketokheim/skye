@@ -46,15 +46,12 @@ jobs:
       #   settings.compiler.version=11
       #   settings.compiler.libcxx=libstdc++
       #
-      run: >
-        python3 -m ensurepip --upgrade
-        && python3 -m pip install conan
-        && conan profile new default --detect
+      run: pip3 install conan --upgrade
 
     - name: Install dependencies
       #
       # Download packages listed in our manifest. Generate toolchain file for
-      # CMake so that we can use find_package(...) to find deps
+      # CMake so that we can use find_package(...) to find deps.
       #
       run: >
         install -d build
