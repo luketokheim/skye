@@ -46,9 +46,7 @@ jobs:
       #   settings.compiler.version=11
       #   settings.compiler.libcxx=libstdc++
       #
-      run: >
-        pip3 install setuptools wheel --upgrade
-        && pip3 install conan --upgrade
+      run: pipx install conan
 
     - name: Install dependencies
       #
