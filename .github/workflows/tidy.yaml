@@ -24,7 +24,7 @@ jobs:
 
     - name: Install package manager
       run: >
-        pip3 install conan --upgrade
+        pipx install conan
         && conan profile new default --detect
         && conan profile update settings.compiler.libcxx=libc++ default
 

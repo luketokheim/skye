@@ -46,7 +46,9 @@ jobs:
       #   settings.compiler.version=11
       #   settings.compiler.libcxx=libstdc++
       #
-      run: pipx install conan
+      run: >
+        pipx install conan
+        && conan profile new default --detect
 
     - name: Install dependencies
       #
@@ -73,7 +75,7 @@ jobs:
       # Build all enabled programs with the current configuration.
       #
       working-directory: build
-      run: cmake --build .
+      run: cmake --build . --config=Release
 
     - name: Test
       #
@@ -85,4 +87,4 @@ jobs:
       #   add_test(UnitTestName unit_test)
       #
       working-directory: build
-      run: ctest --output-on-failure
+      run: ctest --output-on-failure --config=Release
