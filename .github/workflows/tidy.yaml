@@ -20,13 +20,13 @@ jobs:
     - name: Install build tools
       run: >
         sudo apt-get update
-        && sudo apt-get install -y clang-14 ninja-build pip
-    
-    - uses: luketokheim/get-conan@main
+        && sudo apt-get install -y clang-14 ninja-build
 
-    - name: Create build profile
+    - name: Install package manager
       run: >
-        conan profile new default --detect
+        python3 -m ensurepip --upgrade
+        && python3 -m pip install conan
+        && conan profile new default --detect
         && conan profile update settings.compiler.libcxx=libc++ default
 
     - name: Install dependencies

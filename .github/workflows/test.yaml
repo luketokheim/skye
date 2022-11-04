@@ -18,13 +18,38 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
+      
       matrix:
         os: [windows-2022, macos-12, ubuntu-22.04]
 
     steps:
     - uses: actions/checkout@v3
 
-    - uses: luketokheim/get-conan@main
+    - name: Install package manager
+      #
+      # Install conan and autodetect the build profile. Defaults are:
+      #
+      # settings.build_type=Release
+      #
+      # - Windows Server 2022
+      #   settings.compiler=Visual Studio
+      #   settings.compiler.version=17
+      #
+      # - macOS 12.6
+      #   settings.compiler=apple-clang
+      #   settings.compiler.version=14
+      #   settings.compiler.libcxx=libc++
+      #
+      # - Ubuntu 22.04
+      #   settings.compiler=gcc
+      #   settings.compiler.version=11
+      #   settings.compiler.libcxx=libstdc++
+      #
+      run: >
+        python3 -m ensurepip --upgrade
+        && python3 -m pip install conan
+        && conan profile new default --detect
 
     - name: Install dependencies
       #
