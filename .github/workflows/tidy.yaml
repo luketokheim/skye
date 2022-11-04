@@ -10,6 +10,10 @@ jobs:
   build:
     runs-on: ubuntu-22.04
 
+    env:
+      CC: clang-14
+      CXX: clang++-14
+
     steps:
     - uses: actions/checkout@v3
 
@@ -32,9 +36,6 @@ jobs:
       # Download packages listed in our manifest. Generate toolchain file for
       # CMake so that we can use find_package(...) to find deps
       #
-      env:
-        CC: clang-14
-        CXX: clang++-14
       run: >
         install -d build
         && cd build
@@ -48,7 +49,6 @@ jobs:
       run: >
         cmake .. -GNinja
         -DCMAKE_BUILD_TYPE=Release
-        -DCMAKE_CXX_COMPILER=clang++-14
         -DCMAKE_CXX_CLANG_TIDY=clang-tidy-14
         -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
         -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
@@ -59,4 +59,4 @@ jobs:
       # Build all enabled programs with the current configuration.
       #
       working-directory: build
-      run: cmake --build . --config Release
+      run: cmake --build .
