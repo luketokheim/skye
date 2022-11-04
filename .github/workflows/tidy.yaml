@@ -21,15 +21,13 @@ jobs:
       run: >
         sudo apt-get update
         && sudo apt-get install -y clang-14 ninja-build pip
+    
+    - uses: luketokheim/get-conan@main
 
-    - name: Install package manager
+    - name: Create build profile
       run: >
-        pip install conan
-        && conan profile new tidy --detect
-        && conan profile update settings.build_type=Release tidy
-        && conan profile update settings.compiler=clang tidy
-        && conan profile update settings.compiler.version=14 tidy
-        && conan profile update settings.compiler.libcxx=libc++ tidy
+        conan profile new default --detect
+        && conan profile update settings.compiler.libcxx=libc++ default
 
     - name: Install dependencies
       #
@@ -39,7 +37,7 @@ jobs:
       run: >
         install -d build
         && cd build
-        && conan install .. --build=missing --profile=tidy
+        && conan install .. --build=missing
 
     - name: Configure
       #
