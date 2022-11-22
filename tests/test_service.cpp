@@ -152,6 +152,35 @@ TEST_CASE("make_co_handler", "[service]")
     REQUIRE_THROWS(ioc.run());
 }
 
+TEST_CASE("async_run_functor", "[service]")
+{
+    namespace asio = boost::asio;
+    namespace http = boost::beast::http;
+    namespace usrv = httpmicroservice;
+
+    constexpr auto kPort = 8080;
+
+    struct Handler {
+        asio::awaitable<usrv::response> operator()(usrv::request req) const
+        {
+            co_return usrv::response{http::status::ok, req.version()};
+        }
+
+        std::shared_ptr<int> ctx;
+    };
+
+    // Handler function object. One use case is to include some shared state or
+    // context. This could be some other resource handle to DB, etc.
+    Handler handler;
+    handler.ctx = std::make_shared<int>(100);
+
+    asio::io_context ioc;
+
+    usrv::async_run(ioc, kPort, handler);
+
+    REQUIRE(ioc.run_one() > 0);
+}
+
 TEST_CASE("async_run_context", "[service]")
 {
     namespace asio = boost::asio;
@@ -164,11 +193,11 @@ TEST_CASE("async_run_context", "[service]")
         co_return usrv::response(http::status::ok, req.version());
     };
 
-    // Run server in its own thread so we can call ctx.stop() from main
-    asio::io_context ctx;
+    auto server = std::async(std::launch::async, [handler]() {
+        asio::io_context ioc;
+        usrv::async_run(ioc, kPort, handler);
 
-    auto server = std::async(std::launch::async, [&ctx, handler]() {
-        usrv::async_run(ctx, kPort, handler);
+        REQUIRE(ioc.run_one() > 0);
     });
 }
 
@@ -178,6 +207,7 @@ TEST_CASE("integration", "[service]")
     namespace http = boost::beast::http;
     namespace usrv = httpmicroservice;
     using tcp = boost::asio::ip::tcp;
+    using namespace std::chrono_literals;
 
     constexpr auto kPort = 8081;
 
@@ -204,15 +234,30 @@ TEST_CASE("integration", "[service]")
     auto client_partial_write = [&num_client]() -> asio::awaitable<void> {
         // Send partial request and close socket
         {
-            tcp::endpoint endpoint;
-            endpoint.port(kPort);
+            tcp::endpoint endpoint(
+                asio::ip::address_v4::from_string("127.0.0.1"), kPort);
 
             tcp::socket socket{co_await asio::this_coro::executor};
 
-            co_await socket.async_connect(endpoint, asio::use_awaitable);
+            boost::system::error_code ec;
+            for (int i = 0; i < 5; ++i) {
+                co_await socket.async_connect(
+                    endpoint, asio::redirect_error(asio::use_awaitable, ec));
+                if (!ec) {
+                    break;
+                }
+
+                asio::steady_timer timer{socket.get_executor(), 100ms};
+                co_await timer.async_wait(asio::use_awaitable);
+            }
+
+            REQUIRE(!ec);
 
             co_await asio::async_write(
-                socket, asio::buffer("POST /target HT"), asio::use_awaitable);
+                socket, asio::buffer("POST /target HT"),
+                asio::redirect_error(asio::use_awaitable, ec));
+
+            REQUIRE(!ec);
 
             ++num_client;
         }
@@ -221,20 +266,37 @@ TEST_CASE("integration", "[service]")
     auto client_partial_read = [&num_client]() -> asio::awaitable<void> {
         // Send complete request, do partial read
         {
-            tcp::endpoint endpoint;
-            endpoint.port(kPort);
+            tcp::endpoint endpoint(
+                asio::ip::address_v4::from_string("127.0.0.1"), kPort);
 
             tcp::socket socket{co_await asio::this_coro::executor};
 
-            co_await socket.async_connect(endpoint, asio::use_awaitable);
+            boost::system::error_code ec;
+            for (int i = 0; i < 5; ++i) {
+                co_await socket.async_connect(
+                    endpoint, asio::redirect_error(asio::use_awaitable, ec));
+                if (!ec) {
+                    break;
+                }
+
+                asio::steady_timer timer{socket.get_executor(), 100ms};
+                co_await timer.async_wait(asio::use_awaitable);
+            }
+
+            REQUIRE(!ec);
 
             co_await asio::async_write(
                 socket, asio::buffer("GET / HTTP/1.1\r\n\r\n"),
-                asio::use_awaitable);
+                asio::redirect_error(asio::use_awaitable, ec));
+
+            REQUIRE(!ec);
 
             std::array<char, 4> buf{};
             co_await asio::async_read(
-                socket, asio::buffer(buf), asio::use_awaitable);
+                socket, asio::buffer(buf),
+                asio::redirect_error(asio::use_awaitable, ec));
+
+            REQUIRE(!ec);
 
             ++num_client;
         }
@@ -242,22 +304,16 @@ TEST_CASE("integration", "[service]")
         co_return;
     };
 
-    auto timeout = []() -> asio::awaitable<void> {
-        using namespace std::chrono_literals;
-
-        asio::steady_timer timer{co_await asio::this_coro::executor, 1s};
-        co_await timer.async_wait(asio::use_awaitable);
-
-        co_return;
-    };
-
     auto coro = [&]() -> asio::awaitable<void> {
         using namespace asio::experimental::awaitable_operators;
 
-        co_await (client_partial_write() || timeout());
+        co_await (client_partial_read() && client_partial_write());
     };
 
-    co_spawn(ioc, coro(), [](auto ptr) { REQUIRE(!ptr); });
+    co_spawn(ioc, coro(), [&ioc](auto ptr) {
+        REQUIRE(!ptr);
+        ioc.stop();
+    });
 
     REQUIRE(ioc.run() > 0);
     REQUIRE(num_client == 2);

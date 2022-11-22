@@ -132,19 +132,19 @@ TEST_CASE("session", "[session]")
         co_return res;
     };
 
-    auto future = co_spawn(
-        ctx,
-        usrv::session(s, handler, std::make_optional<usrv::session_stats>()),
-        asio::use_future);
+    usrv::session_stats stats;
+    auto reporter = [&stats](const usrv::session_stats& s) { stats = s; };
+
+    auto future =
+        co_spawn(ctx, usrv::session(s, handler, reporter), asio::use_future);
 
     REQUIRE(ctx.run() > 0);
 
     REQUIRE(future.valid());
+    future.get();
 
-    auto stats = future.get();
-    REQUIRE(stats);
-    REQUIRE(stats->num_request == 1);
-    REQUIRE(stats->bytes_read == data.size());
+    REQUIRE(stats.num_request == 1);
+    REQUIRE(stats.bytes_read == data.size());
 
     REQUIRE(s.get_tx().ends_with(body));
     REQUIRE(handler_called == 1);
@@ -165,18 +165,17 @@ TEST_CASE("session_error", "[session]")
         co_return usrv::response{http::status::ok, req.version()};
     };
 
-    auto future = co_spawn(
-        ctx,
-        usrv::session(s, handler, std::make_optional<usrv::session_stats>()),
-        asio::use_future);
+    usrv::session_stats stats;
+    auto reporter = [&stats](const usrv::session_stats& s) { stats = s; };
+
+    auto future =
+        co_spawn(ctx, usrv::session(s, handler, reporter), asio::use_future);
 
     REQUIRE(ctx.run() > 0);
 
     REQUIRE(future.valid());
+    future.get();
 
-    auto stats = future.get();
-    REQUIRE(stats);
-    REQUIRE(stats->num_request == 0);
-
+    REQUIRE(stats.num_request == 0);
     REQUIRE(!handler_called);
 }
