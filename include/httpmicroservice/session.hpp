@@ -10,7 +10,6 @@
 #include <boost/beast/http/write.hpp>
 
 #include <chrono>
-#include <optional>
 #include <type_traits>
 
 namespace httpmicroservice {

@@ -52,8 +52,7 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
         // Run coroutine to handle one http connection
         co_spawn(
             acceptor.get_executor(),
-            session(std::move(stream), handler, reporter),
-            [&reporter](auto ptr) {
+            session(std::move(stream), handler, reporter), [](auto ptr) {
                 // Propagate exception from the coroutine
                 if (ptr) {
                     std::rethrow_exception(ptr);
@@ -71,9 +70,9 @@ asio::awaitable<void> listen(int port, Handler handler, Reporter reporter)
 {
     using tcp = asio::ip::tcp;
 
-    tcp::endpoint endpoint(tcp::v4(), port);
+    tcp::endpoint endpoint{tcp::v4(), static_cast<asio::ip::port_type>(port)};
 
-    tcp::acceptor acceptor(co_await asio::this_coro::executor, endpoint);
+    tcp::acceptor acceptor{co_await asio::this_coro::executor, endpoint};
 
     co_await accept(
         std::move(acceptor), std::move(handler), std::move(reporter));
@@ -97,6 +96,9 @@ void async_run(Executor ex, int port, Handler handler, Reporter reporter)
         });
 }
 
+/**
+  Helper function to call async_run without a reporter function.
+*/
 template <typename ExecutionContext, typename Handler>
 void async_run(ExecutionContext& context, int port, Handler handler)
 {
