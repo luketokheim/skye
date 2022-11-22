@@ -22,8 +22,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_link_options(httpmicroservice PUBLIC -stdlib=libc++)
 endif()
 
-find_package(Boost REQUIRED)
-find_package(fmt REQUIRED)
+find_package(Boost 1.79 REQUIRED CONFIG)
+find_package(fmt 9.0 REQUIRED CONFIG)
 
 target_link_libraries(
     httpmicroservice
@@ -58,17 +58,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     include(CTest)
     add_subdirectory(examples)
 
-    set(LIBRARY_PUBLIC_HEADERS
-        include/httpmicroservice.hpp
-        include/httpmicroservice/format.hpp
-        include/httpmicroservice/service.hpp
-        include/httpmicroservice/session.hpp
-        include/httpmicroservice/types.hpp)
-
-    set_target_properties(
-        httpmicroservice PROPERTIES PUBLIC_HEADER "${LIBRARY_PUBLIC_HEADERS}")
-
-    install(TARGETS httpmicroservice ARCHIVE PUBLIC_HEADER)
+    install(DIRECTORY include DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/")
+    install(TARGETS httpmicroservice)
 endif()
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)

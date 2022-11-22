@@ -10,11 +10,12 @@ RUN apk update && apk add --no-cache \
     g++ \
     liburing-dev \
     linux-headers \
+    make \
     ninja \
     py-pip
 
 # Install conan package manager
-RUN pip install conan && conan profile new default --detect
+RUN pip install conan --upgrade && conan profile new default --detect
 
 # Copy repo source code
 COPY . /source
