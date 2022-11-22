@@ -26,7 +26,7 @@ asio::awaitable<usrv::response> producer(usrv::request req)
     // requests.
     std::this_thread::sleep_for(kSimulatedDelay);
 
-    usrv::response res(http::status::ok, req.version());
+    usrv::response res{http::status::ok, req.version()};
     res.set(http::field::content_type, "application/json");
     res.body() = "{\"hello\": \"producer\"}";
 
