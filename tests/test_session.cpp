@@ -137,7 +137,7 @@ TEST_CASE("session", "[session]")
         usrv::session(s, handler, std::make_optional<usrv::session_stats>()),
         asio::use_future);
 
-    ctx.run();
+    REQUIRE(ctx.run() > 0);
 
     REQUIRE(future.valid());
 
@@ -148,4 +148,35 @@ TEST_CASE("session", "[session]")
 
     REQUIRE(s.get_tx().ends_with(body));
     REQUIRE(handler_called == 1);
+}
+
+TEST_CASE("session_error", "[session]")
+{
+    asio::io_context ctx;
+    test::mock_sock<std::string> s(ctx.get_executor());
+
+    const std::string data = "GET / xxx HTTP/1.0\r\n\r\n";
+    s.set_rx(data);
+
+    bool handler_called = false;
+    auto handler = [&handler_called](
+                       usrv::request req) -> asio::awaitable<usrv::response> {
+        handler_called = true;
+        co_return usrv::response{http::status::ok, req.version()};
+    };
+
+    auto future = co_spawn(
+        ctx,
+        usrv::session(s, handler, std::make_optional<usrv::session_stats>()),
+        asio::use_future);
+
+    REQUIRE(ctx.run() > 0);
+
+    REQUIRE(future.valid());
+
+    auto stats = future.get();
+    REQUIRE(stats);
+    REQUIRE(stats->num_request == 0);
+
+    REQUIRE(!handler_called);
 }
