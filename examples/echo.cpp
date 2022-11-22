@@ -15,7 +15,7 @@ namespace http = httpmicroservice::http;
 usrv::response post(const usrv::request& req)
 {
     // Echo the POST request body
-    usrv::response res(http::status::ok, req.version());
+    usrv::response res{http::status::ok, req.version()};
     res.set(http::field::content_type, "text/plain");
     res.body() = req.body();
 
@@ -38,12 +38,12 @@ usrv::response get(const usrv::request& req)
 {
     // This is how to to respond with a "404 Not Found"
     if (req.target() == "/not_found") {
-        return usrv::response(http::status::not_found, req.version());
+        return usrv::response{http::status::not_found, req.version()};
     }
 
     std::string_view target{req.target().data(), req.target().size()};
 
-    usrv::response res(http::status::ok, req.version());
+    usrv::response res{http::status::ok, req.version()};
     res.set(http::field::content_type, "application/json");
     res.body() = fmt::format("{{\"hello\": \"{}\"}}", target);
 
@@ -61,8 +61,8 @@ asio::awaitable<usrv::response> echo(usrv::request req)
         co_return post(req);
         break;
     default:
-        co_return usrv::response(
-            http::status::method_not_allowed, req.version());
+        co_return usrv::response{
+            http::status::method_not_allowed, req.version()};
     }
 }
 

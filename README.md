@@ -8,12 +8,12 @@ Run your C++ function as a containerized web service.
 
 ## Quick Start
 
-A minimal service needs a request handler that looks like this.
+A minimal service needs a request handler.
 
 ```cpp
 asio::awaitable<usrv::response> hello_world(usrv::request req)
 {
-    usrv::response res(http::status::ok, req.version());
+    usrv::response res{http::status::ok, req.version()};
     res.set(http::field::content_type, "text/plain");
     res.body() = "Hello World!";
 
@@ -37,14 +37,16 @@ int main()
       // Listen on port 8080 and route all HTTP requests to the hello_world handler
       usrv::async_run(ioc, 8080, hello_world);
 
-      // This will run the event loop until there is no more work to be done
+      // Run event processing loop
       ioc.run();
 
       return 0;
 }
 ```
 
-Asio has excellent docs and refer to those for details on [io_context](https://www.boost.org/doc/libs/1_80_0/doc/html/boost_asio/reference/io_context.html) and [awaitable](https://www.boost.org/doc/libs/1_80_0/doc/html/boost_asio/reference/awaitable.html).
+Asio has excellent docs. Refer to those for more details on
+[io_context](https://www.boost.org/doc/libs/1_80_0/doc/html/boost_asio/reference/io_context.html)
+and [awaitable](https://www.boost.org/doc/libs/1_80_0/doc/html/boost_asio/reference/awaitable.html).
 
 Build a Docker image that runs the [Hello World](examples/hello.cpp) web service.
 
@@ -56,6 +58,9 @@ docker build -t httpmicroservice-cpp .
 docker run --rm -p 8080:8080 httpmicroservice-cpp
 ```
 
+The image is based on the empty Docker "scratch" image and only contains the
+single binary [Hello World](examples/hello.cpp) example server.
+
 ## Design
 
 The basic idea is that you use this library to run your C++ function in response
@@ -63,8 +68,8 @@ to an HTTP request. The library provides the server functionality and handles th
 networking and protocol aspects for you.
 
 The service runs one thread for all network I/O. For blocking or long running
-synchronous tasks inside your C++ function your must provide a worker thread
-pool to prevent blocking the networking coroutines.
+synchronous tasks inside your C++ function your may want to provide a worker
+thread pool to prevent blocking the networking coroutines.
 
 This service is intended to run behind a reverse proxy that terminates TLS and
 maps requests to this application. I am using it on Google Cloud Run but other
@@ -88,11 +93,15 @@ Kohlhoff.
 - [Coroutines](https://en.cppreference.com/w/cpp/language/coroutines) support from a modern compiler
 - [Boost.Asio](https://think-async.com/Asio/) for network I/O
 - [Boost.Beast](https://github.com/boostorg/beast) to parse HTTP requests and form reponses
+- [Catch2](https://github.com/catchorg/Catch2) to run tests for continuous integration
 
-I recommend installing io_uring on Linux if available. It is enabled on the Docker and
-Continuous Deployment (CD) builds and works on the Cloud Run
+I recommend installing io_uring (liburing-dev) on Linux if available. It is
+enabled on the Docker and Continuous Deployment (CD) builds and works on the Cloud Run
 [second generation](https://cloud.google.com/run/docs/about-execution-environments)
 execution environment.
+
+The managed container runtimes on AWS (App Runner) and Azure (Container Apps)
+do not support io_uring.
 
 ## Compilers
 

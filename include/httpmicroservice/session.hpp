@@ -10,7 +10,7 @@
 #include <boost/beast/http/write.hpp>
 
 #include <chrono>
-#include <optional>
+#include <type_traits>
 
 namespace httpmicroservice {
 
@@ -32,16 +32,24 @@ constexpr auto kRequestSizeLimit = 1000 * 1000;
       write(stream, response)
   }
  */
-template <typename AsyncStream, typename Handler>
-asio::awaitable<std::optional<session_stats>>
-session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
+template <typename AsyncStream, typename Handler, typename Reporter>
+asio::awaitable<void>
+session(AsyncStream stream, Handler handler, Reporter reporter)
 {
-    if (stats) {
-        stats->fd = stream.native_handle();
-        stats->start_time = std::chrono::steady_clock::now();
+    static_assert(
+        std::is_invocable_r_v<asio::awaitable<response>, Handler, request>,
+        "Handler type requirements not met");
+
+    constexpr bool kEnableStats =
+        std::is_invocable_r_v<void, Reporter, const session_stats&>;
+
+    session_stats stats;
+    if constexpr (kEnableStats) {
+        stats.fd = stream.native_handle();
+        stats.start_time = std::chrono::steady_clock::now();
     }
 
-    boost::beast::flat_buffer buffer(kRequestSizeLimit);
+    boost::beast::flat_buffer buffer{kRequestSizeLimit};
     boost::system::error_code ec;
 
     for (;;) {
@@ -61,8 +69,8 @@ session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
                 break;
             }
 
-            if (stats) {
-                stats->bytes_read += bytes_read;
+            if constexpr (kEnableStats) {
+                stats.bytes_read += bytes_read;
             }
         }
 
@@ -81,9 +89,9 @@ session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
             break;
         }
 
-        if (stats) {
-            ++stats->num_request;
-            stats->bytes_write += bytes_write;
+        if constexpr (kEnableStats) {
+            ++stats.num_request;
+            stats.bytes_write += bytes_write;
         }
 
         if (res.need_eof()) {
@@ -92,11 +100,10 @@ session(AsyncStream stream, Handler handler, std::optional<session_stats> stats)
         }
     }
 
-    if (stats) {
-        stats->end_time = std::chrono::steady_clock::now();
+    if constexpr (kEnableStats) {
+        stats.end_time = std::chrono::steady_clock::now();
+        reporter(stats);
     }
-
-    co_return stats;
 }
 
 } // namespace httpmicroservice

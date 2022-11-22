@@ -10,7 +10,6 @@
 #include <boost/asio/use_awaitable.hpp>
 
 #include <exception>
-#include <type_traits>
 
 namespace httpmicroservice {
 
@@ -34,9 +33,6 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
 {
     using tcp = asio::ip::tcp;
 
-    constexpr bool kEnableStats =
-        std::is_invocable_v<Reporter, const session_stats&>;
-
     for (;;) {
         boost::system::error_code ec;
 
@@ -53,25 +49,13 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
             continue;
         }
 
-        std::optional<session_stats> stats;
-        if constexpr (kEnableStats) {
-            stats = std::make_optional<session_stats>();
-        }
-
         // Run coroutine to handle one http connection
         co_spawn(
             acceptor.get_executor(),
-            session(std::move(stream), handler, std::move(stats)),
-            [&reporter](auto ptr, auto stats) {
+            session(std::move(stream), handler, reporter), [](auto ptr) {
                 // Propagate exception from the coroutine
                 if (ptr) {
                     std::rethrow_exception(ptr);
-                }
-
-                if constexpr (kEnableStats) {
-                    if (stats) {
-                        reporter(*stats);
-                    }
                 }
             });
     }
@@ -86,9 +70,9 @@ asio::awaitable<void> listen(int port, Handler handler, Reporter reporter)
 {
     using tcp = asio::ip::tcp;
 
-    tcp::endpoint endpoint(tcp::v4(), port);
+    tcp::endpoint endpoint{tcp::v4(), static_cast<asio::ip::port_type>(port)};
 
-    tcp::acceptor acceptor(co_await asio::this_coro::executor, endpoint);
+    tcp::acceptor acceptor{co_await asio::this_coro::executor, endpoint};
 
     co_await accept(
         std::move(acceptor), std::move(handler), std::move(reporter));
@@ -112,6 +96,9 @@ void async_run(Executor ex, int port, Handler handler, Reporter reporter)
         });
 }
 
+/**
+  Helper function to call async_run without a reporter function.
+*/
 template <typename ExecutionContext, typename Handler>
 void async_run(ExecutionContext& context, int port, Handler handler)
 {
