@@ -1,5 +1,4 @@
-find_package(Catch2 REQUIRED)
-# find_package(Python)
+find_package(Catch2 3.1.0 REQUIRED CONFIG)
 
 add_executable(
     usrv-test
@@ -15,11 +14,3 @@ target_link_libraries(
     Catch2::Catch2WithMain)
 
 add_test(UnitTests usrv-test)
-
-# Run client requests to test server
-# python tests/make_client_requests.py usrv-test
-# add_test(
-#     NAME IntegrationTests
-#     COMMAND ${Python_EXECUTABLE}
-#     ${CMAKE_CURRENT_SOURCE_DIR}/make_client_requests.py
-#     $<TARGET_FILE:usrv-test>)

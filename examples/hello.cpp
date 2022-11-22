@@ -12,7 +12,7 @@ namespace http = httpmicroservice::http;
 
 asio::awaitable<usrv::response> hello(usrv::request req)
 {
-    usrv::response res(http::status::ok, req.version());
+    usrv::response res{http::status::ok, req.version()};
     res.set(http::field::content_type, "application/json");
     res.body() = "{\"hello\": \"world\"}";
 
