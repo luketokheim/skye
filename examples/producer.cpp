@@ -11,8 +11,8 @@
 #include <thread>
 
 namespace asio = boost::asio;
-namespace usrv = httpmicroservice;
 namespace http = boost::beast::http;
+namespace usrv = httpmicroservice;
 
 // Runs on the pool executor which runs in its own thread.
 asio::awaitable<usrv::response> producer(usrv::request req)
