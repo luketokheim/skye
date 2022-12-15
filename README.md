@@ -27,8 +27,8 @@ And a main function.
 #include <httpmicroservice/service.hpp>
 
 namespace asio = boost::asio;
+namespace http = boost::beast::http;
 namespace usrv = httpmicroservice;
-namespace http = httpmicroservice::http;
 
 int main()
 {
@@ -131,11 +131,11 @@ libraries with [find_package](https://cmake.org/cmake/help/latest/command/find_p
 
 ```console
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
-cmake --build .
+cmake --build . --config=Release
 ```
 
 Run tests.
 
 ```console
-ctest
+ctest -C Release
 ```
