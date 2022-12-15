@@ -27,8 +27,8 @@ And a main function.
 #include <httpmicroservice/service.hpp>
 
 namespace asio = boost::asio;
+namespace http = boost::beast::http;
 namespace usrv = httpmicroservice;
-namespace http = httpmicroservice::http;
 
 int main()
 {

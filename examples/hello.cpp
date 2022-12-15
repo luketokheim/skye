@@ -7,8 +7,8 @@
 #include <exception>
 
 namespace asio = boost::asio;
+namespace http = boost::beast::http;
 namespace usrv = httpmicroservice;
-namespace http = httpmicroservice::http;
 
 asio::awaitable<usrv::response> hello(usrv::request req)
 {

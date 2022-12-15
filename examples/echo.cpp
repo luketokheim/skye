@@ -8,8 +8,8 @@
 #include <exception>
 
 namespace asio = boost::asio;
+namespace http = boost::beast::http;
 namespace usrv = httpmicroservice;
-namespace http = httpmicroservice::http;
 
 // Handle POST requests, echo back the body contents
 usrv::response post(const usrv::request& req)
@@ -41,6 +41,7 @@ usrv::response get(const usrv::request& req)
         return usrv::response{http::status::not_found, req.version()};
     }
 
+    // Convert from boost::string_view
     std::string_view target{req.target().data(), req.target().size()};
 
     usrv::response res{http::status::ok, req.version()};

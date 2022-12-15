@@ -10,7 +10,7 @@
 #include <vector>
 
 namespace asio = boost::asio;
-namespace http = httpmicroservice::http;
+namespace http = boost::beast::http;
 namespace usrv = httpmicroservice;
 
 TEST_CASE("async_read_some", "[mock_sock]")

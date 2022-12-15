@@ -14,12 +14,13 @@
 #include <string>
 #include <thread>
 
+namespace asio = boost::asio;
+namespace http = boost::beast::http;
+namespace usrv = httpmicroservice;
+
 TEST_CASE("async_run", "[service]")
 {
     using namespace std::chrono_literals;
-    namespace asio = boost::asio;
-    namespace http = boost::beast::http;
-    namespace usrv = httpmicroservice;
     using tcp = boost::asio::ip::tcp;
 
     constexpr auto kBodyNumBytes = 1000;
@@ -118,9 +119,6 @@ TEST_CASE("async_run", "[service]")
 
 TEST_CASE("make_co_handler", "[service]")
 {
-    namespace asio = boost::asio;
-    namespace usrv = httpmicroservice;
-
     asio::io_context ioc;
 
     const auto tid = std::this_thread::get_id();
@@ -154,10 +152,6 @@ TEST_CASE("make_co_handler", "[service]")
 
 TEST_CASE("async_run_functor", "[service]")
 {
-    namespace asio = boost::asio;
-    namespace http = boost::beast::http;
-    namespace usrv = httpmicroservice;
-
     constexpr auto kPort = 8080;
 
     struct Handler {
@@ -183,10 +177,6 @@ TEST_CASE("async_run_functor", "[service]")
 
 TEST_CASE("async_run_context", "[service]")
 {
-    namespace asio = boost::asio;
-    namespace http = boost::beast::http;
-    namespace usrv = httpmicroservice;
-
     constexpr auto kPort = 8080;
 
     auto handler = [](auto req) -> asio::awaitable<usrv::response> {
@@ -203,11 +193,8 @@ TEST_CASE("async_run_context", "[service]")
 
 TEST_CASE("integration", "[service]")
 {
-    namespace asio = boost::asio;
-    namespace http = boost::beast::http;
-    namespace usrv = httpmicroservice;
-    using tcp = boost::asio::ip::tcp;
     using namespace std::chrono_literals;
+    using tcp = boost::asio::ip::tcp;
 
     constexpr auto kPort = 8081;
 

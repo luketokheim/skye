@@ -4,7 +4,6 @@
 
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/co_spawn.hpp>
-#include <boost/asio/detached.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/use_awaitable.hpp>
@@ -20,11 +19,11 @@ namespace asio = boost::asio;
   socket stream connection.
 
   loop {
+      // Incoming socket connection
       stream = accept()
 
-      // One coroutine per session. When it is complete, call the Reporter
-      // with the session stats.
-      stats = await session(stream)
+      // HTTP request/response loop
+      co_spawn session(stream)
   }
  */
 template <typename Acceptor, typename Handler, typename Reporter>
