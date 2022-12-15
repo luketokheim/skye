@@ -39,8 +39,7 @@ RUN cmake .. -GNinja \
 RUN cmake --build .
 
 # Install
-RUN cmake --install .
-RUN strip /usr/local/bin/usrv-hello
+RUN cmake --install . --strip
 
 FROM scratch as runtime
 
