@@ -48,7 +48,6 @@ int main()
         asio::io_context ioc;
 
         asio::thread_pool pool{1};
-        auto ex = pool.get_executor();
 
         // Two threads. Main thread runs the http service and the I/O to read
         // requests and write responses. The pool thread runs the producer
@@ -58,7 +57,7 @@ int main()
         // find that the single threaded option performs better at the cost of
         // blocking the event loop.
         usrv::async_run(
-            ioc, port, usrv::make_co_handler(ex, producer), reporter);
+            ioc, port, usrv::make_co_handler(pool, producer), reporter);
 
         // SIGTERM is sent by Docker to ask us to stop (politely)
         // SIGINT handles local Ctrl+C in a terminal

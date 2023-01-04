@@ -132,8 +132,7 @@ TEST_CASE("make_co_handler", "[service]")
 
     asio::thread_pool pool{1};
 
-    auto co_handler =
-        usrv::make_co_handler(pool.get_executor(), awaitable_handler);
+    auto co_handler = usrv::make_co_handler(pool, awaitable_handler);
 
     co_spawn(
         ioc,
