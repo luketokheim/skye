@@ -69,7 +69,7 @@ networking and protocol aspects for you.
 
 The service runs one thread for all network I/O. For blocking or long running
 synchronous tasks inside your C++ function your may want to provide a worker
-thread pool to prevent blocking the networking coroutines.
+thread pool to keep the main event loop running and processing other requests.
 
 This service is intended to run behind a reverse proxy that terminates TLS and
 maps requests to this application. I am using it on Google Cloud Run but other
@@ -92,7 +92,7 @@ Kohlhoff.
 
 - [Coroutines](https://en.cppreference.com/w/cpp/language/coroutines) support from a modern compiler
 - [Boost.Asio](https://think-async.com/Asio/) for network I/O
-- [Boost.Beast](https://github.com/boostorg/beast) to parse HTTP requests and form reponses
+- [Boost.Beast](https://github.com/boostorg/beast) to parse HTTP requests and form responses
 - [Catch2](https://github.com/catchorg/Catch2) to run tests for continuous integration
 
 I recommend installing io_uring (liburing-dev) on Linux if available. It is
@@ -105,7 +105,8 @@ do not support io_uring.
 
 ## Compilers
 
-This project requires C++20 support for coroutines.
+This project requires C++20 support for coroutines. It runs on Windows, macOS,
+and Linux.
 
 - Microsoft Visual Studio 2022
 - Clang 13
