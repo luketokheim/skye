@@ -1,0 +1,97 @@
+openapi: 3.0.3
+info:
+  title: Echo Example
+  description: Echo example echo server for the Http Microservice library.
+  contact:
+    name: GitHub Repo
+    url: https://github.com/luketokheim/httpmicroservice-cpp
+  version: 0.7.0
+servers:
+  - url: http://127.0.0.1:8080
+    description: Echo server running on the local host
+paths:
+  /:
+    get:
+      summary: Print the request target
+      operationId: echoTarget
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Print the input text
+      operationId: echoText
+      requestBody:
+        $ref: '#/components/requestBodies/InputText'
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Hello World
+  /lowercase:
+    post:
+      summary: Convert input text to lower case
+      operationId: lowercaseText
+      requestBody:
+        $ref: '#/components/requestBodies/InputText'
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: hello world
+  /uppercase:
+    post:
+      summary: Convert input text to upper case
+      operationId: uppercaseText
+      requestBody:
+        $ref: '#/components/requestBodies/InputText'
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: HELLO WORLD
+  /reverse:
+    post:
+      summary: Reverse the input text
+      operationId: reverseText
+      requestBody:
+        $ref: '#/components/requestBodies/InputText'
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: olleH dlroW
+  /yell:
+    post:
+      summary: Add exclamation points (!!) to the input text
+      operationId: yellText
+      requestBody:
+        $ref: '#/components/requestBodies/InputText'
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Hello World!!
+components:
+  requestBodies:
+    InputText:
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: Hello World
+            maxLength: 1000000
