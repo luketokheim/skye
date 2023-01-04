@@ -53,9 +53,12 @@ int main()
         // Two threads. Main thread runs the http service and the I/O to read
         // requests and write responses. The pool thread runs the producer
         // function.
+        // Warning! This is just an example of how you to run one thread for
+        // some blocking operation. Not tested in your specific app and you may
+        // find that the single threaded option performs better at the cost of
+        // blocking the event loop.
         usrv::async_run(
-            ioc.get_executor(), port, usrv::make_co_handler(ex, producer),
-            reporter);
+            ioc, port, usrv::make_co_handler(ex, producer), reporter);
 
         // SIGTERM is sent by Docker to ask us to stop (politely)
         // SIGINT handles local Ctrl+C in a terminal
