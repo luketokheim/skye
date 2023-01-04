@@ -31,6 +31,9 @@ constexpr auto kRequestSizeLimit = 1000 * 1000;
 
       write(stream, response)
   }
+
+  If you supply a reporter function object then it is called once after the
+  request loop with the aggregate stats.
  */
 template <typename AsyncStream, typename Handler, typename Reporter>
 asio::awaitable<void>
