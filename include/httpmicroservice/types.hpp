@@ -29,10 +29,16 @@ using request = http::request<http::string_body>;
 using response = http::response<http::string_body>;
 
 /**
-  The session(...) function takes an optional session_stats object. If stats
-  collection is enabled at compile time then this object is populated in the
+  Rationale: We want a simple mechanism to get transmit and receive byte counts
+  and other basic metrics for service observability. The logging could be
+  printing to the console or publishing an endpoint for Prometheus based
+  monitoring.
+
+  The session(...) function takes an optional reporter function object. If stats
+  collection is enabled at compile time then the metrics are collected in the
   HTTP session loop. One session_stats object is intended to represent the
-  aggregate data from one session(...) loop.
+  aggregate data from one session loop. The reporter function object is called
+  once per session.
  */
 struct session_stats {
     int fd{0};

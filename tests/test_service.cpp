@@ -52,14 +52,13 @@ TEST_CASE("async_run", "[service]")
         }
     };
 
-    // Run server in its own thread so we can call ctx.stop() from main
-    asio::io_context ctx;
+    // Run server in its own thread so we can call ioc.stop() from main
+    asio::io_context ioc;
     auto server =
-        std::async(std::launch::async, [&ctx, awaitable_handler, reporter]() {
-            usrv::async_run(
-                ctx.get_executor(), kPort, awaitable_handler, reporter);
+        std::async(std::launch::async, [&ioc, awaitable_handler, reporter]() {
+            usrv::async_run(ioc, kPort, awaitable_handler, reporter);
 
-            ctx.run_for(5s);
+            ioc.run_for(5s);
         });
 
     usrv::request req(http::verb::get, "/", kHttpVersion);
@@ -67,9 +66,9 @@ TEST_CASE("async_run", "[service]")
     // Run a HTTP client in its own thread, get http://localhost:8080/
     // https://github.com/boostorg/beast/blob/develop/example/http/client/sync/http_client_sync.cpp
     auto client = std::async(std::launch::async, [req]() {
-        asio::io_context ctx;
+        asio::io_context ioc;
 
-        tcp::resolver resolver(ctx);
+        tcp::resolver resolver(ioc);
         const tcp::endpoint endpoint =
             *resolver.resolve("127.0.0.1", std::to_string(kPort));
 
@@ -77,7 +76,7 @@ TEST_CASE("async_run", "[service]")
 
         // Just try to connect
         for (int i = 0; i < 5; ++i) {
-            tcp::socket socket(ctx);
+            tcp::socket socket(ioc);
             socket.connect(endpoint, ec);
             if (!ec) {
                 break;
@@ -86,7 +85,7 @@ TEST_CASE("async_run", "[service]")
             std::this_thread::sleep_for(100ms);
         }
 
-        boost::beast::tcp_stream stream(ctx);
+        boost::beast::tcp_stream stream(ioc);
         stream.expires_after(2s);
         stream.connect(endpoint);
 
@@ -111,7 +110,7 @@ TEST_CASE("async_run", "[service]")
         REQUIRE(response.body() == expected.body());
     }());
 
-    ctx.stop();
+    ioc.stop();
 
     REQUIRE(server.wait_for(2s) == std::future_status::ready);
     REQUIRE_NOTHROW(server.get());
@@ -133,8 +132,7 @@ TEST_CASE("make_co_handler", "[service]")
 
     asio::thread_pool pool{1};
 
-    auto co_handler =
-        usrv::make_co_handler(pool.get_executor(), awaitable_handler);
+    auto co_handler = usrv::make_co_handler(pool, awaitable_handler);
 
     co_spawn(
         ioc,
@@ -214,7 +212,7 @@ TEST_CASE("integration", "[service]")
 
     asio::io_context ioc;
 
-    usrv::async_run(ioc.get_executor(), kPort, handler, reporter);
+    usrv::async_run(ioc, kPort, handler, reporter);
 
     int num_client = 0;
 

@@ -80,13 +80,19 @@ asio::awaitable<void> listen(int port, Handler handler, Reporter reporter)
 /**
   Run the server in a coroutine. Convenient to call similar to asio::async_read
   style free functions.
+
+  The handler function object is called once per request.
+
+  The optional reporter function object is called once per socket session which
+  may span multiple requests.
  */
-template <typename Executor, typename Handler, typename Reporter>
-void async_run(Executor ex, int port, Handler handler, Reporter reporter)
+template <typename ExecutionContext, typename Handler, typename Reporter = bool>
+void async_run(
+    ExecutionContext& ctx, int port, Handler handler, Reporter reporter = {})
 {
     // Run coroutine to listen on our port
     co_spawn(
-        ex, listen(port, std::move(handler), std::move(reporter)),
+        ctx, listen(port, std::move(handler), std::move(reporter)),
         [](auto ptr) {
             // Propagate exception from the coroutine
             if (ptr) {
@@ -96,27 +102,18 @@ void async_run(Executor ex, int port, Handler handler, Reporter reporter)
 }
 
 /**
-  Helper function to call async_run without a reporter function.
-*/
-template <typename ExecutionContext, typename Handler>
-void async_run(ExecutionContext& context, int port, Handler handler)
-{
-    async_run(context.get_executor(), port, std::move(handler), false);
-}
-
-/**
   Wrap a HTTP request handler in its own coroutine. Intended for use with a
-  different Executor not running in the main I/O thread. This is the mechanism
-  to use asio::thread_pool::get_executor to run the handlers outside the service
-  I/O thread.
+  different ExecutionContext not running in the main I/O thread. This is a
+  mechanism to use asio::thread_pool to run the handlers outside main service
+  event loop I/O thread.
  */
-template <typename Executor, typename Handler>
-auto make_co_handler(Executor ex, Handler handler)
+template <typename ExecutionContext, typename Handler>
+auto make_co_handler(ExecutionContext& ctx, Handler handler)
 {
-    return [ex, handler](request req) -> asio::awaitable<response> {
-        auto res =
-            co_await co_spawn(ex, handler(std::move(req)), asio::use_awaitable);
-        co_return res;
+    return [ex = ctx.get_executor(),
+            handler](request req) -> asio::awaitable<response> {
+        co_return co_await co_spawn(
+            ex, handler(std::move(req)), asio::use_awaitable);
     };
 }
 
