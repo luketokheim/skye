@@ -45,8 +45,8 @@ int main()
 ```
 
 Asio has excellent docs. Refer to those for more details on
-[io_context](https://www.boost.org/doc/libs/1_80_0/doc/html/boost_asio/reference/io_context.html)
-and [awaitable](https://www.boost.org/doc/libs/1_80_0/doc/html/boost_asio/reference/awaitable.html).
+[io_context](https://think-async.com/Asio/asio-1.24.0/doc/asio/overview/basics.html)
+and [awaitable](https://think-async.com/Asio/asio-1.24.0/doc/asio/overview/composition/cpp20_coroutines.html).
 
 Build a Docker image that runs the [Hello World](examples/hello.cpp) web service.
 
@@ -91,7 +91,7 @@ Language for Network Programming](https://youtu.be/icgnqFM-aY4) video by Chris
 Kohlhoff.
 
 - [Coroutines](https://en.cppreference.com/w/cpp/language/coroutines) support from a modern compiler
-- [Boost.Asio](https://think-async.com/Asio/) for network I/O
+- [Asio](https://think-async.com/Asio/) for network I/O
 - [Boost.Beast](https://github.com/boostorg/beast) to parse HTTP requests and form responses
 - [Catch2](https://github.com/catchorg/Catch2) to run tests for continuous integration
 
