@@ -38,6 +38,10 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
         auto stream = co_await acceptor.async_accept(
             asio::redirect_error(asio::use_awaitable, ec));
 
+        if (ec == boost::system::errc::too_many_files_open) {
+            continue;
+        }
+
         if (ec) {
             break;
         }
