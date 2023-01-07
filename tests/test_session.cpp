@@ -16,9 +16,10 @@ namespace usrv = httpmicroservice;
 TEST_CASE("async_read_some", "[mock_sock]")
 {
     using buffer = std::vector<char>;
+    using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
 
     asio::io_context ctx;
-    test::mock_sock<buffer> s(ctx.get_executor());
+    tcp_socket s{ctx.get_executor()};
 
     {
         const auto data = test::make_random_string<buffer>(1024);
@@ -42,9 +43,10 @@ TEST_CASE("async_read_some", "[mock_sock]")
 TEST_CASE("async_read", "[mock_sock]")
 {
     using buffer = std::vector<char>;
+    using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
 
     asio::io_context ctx;
-    test::mock_sock<buffer> s(ctx.get_executor());
+    tcp_socket s{ctx.get_executor()};
 
     {
         const auto data = test::make_random_string<buffer>(1024);
@@ -68,9 +70,10 @@ TEST_CASE("async_read", "[mock_sock]")
 TEST_CASE("async_write_some", "[mock_sock]")
 {
     using buffer = std::vector<char>;
+    using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
 
     asio::io_context ctx;
-    test::mock_sock<buffer> s(ctx.get_executor());
+    tcp_socket s{ctx.get_executor()};
 
     {
         const auto data = test::make_random_string<buffer>(1024);
@@ -91,9 +94,10 @@ TEST_CASE("async_write_some", "[mock_sock]")
 TEST_CASE("async_write", "[mock_sock]")
 {
     using buffer = std::vector<char>;
+    using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
 
     asio::io_context ctx;
-    test::mock_sock<buffer> s(ctx.get_executor());
+    tcp_socket s{ctx.get_executor()};
 
     {
         const auto data = test::make_random_string<buffer>(1024);
@@ -113,13 +117,18 @@ TEST_CASE("async_write", "[mock_sock]")
 
 TEST_CASE("session", "[session]")
 {
-    asio::io_context ctx;
-    test::mock_sock<std::string> s(ctx.get_executor());
+    using buffer = std::string;
+    using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
+    using tcp_socket = default_token::as_default_on_t<
+        test::mock_sock<buffer, asio::io_context::executor_type>>;
 
-    const std::string data = "GET / HTTP/1.0\r\n\r\n";
+    asio::io_context ctx;
+    tcp_socket s{ctx.get_executor()};
+
+    const buffer data = "GET / HTTP/1.0\r\n\r\n";
     s.set_rx(data);
 
-    const std::string body = test::make_random_string<std::string>(1024);
+    const buffer body = test::make_random_string<buffer>(1024);
 
     int handler_called = 0;
     auto handler = [&body, &handler_called](
@@ -135,8 +144,9 @@ TEST_CASE("session", "[session]")
     usrv::session_stats stats;
     auto reporter = [&stats](const usrv::session_stats& s) { stats = s; };
 
-    auto future =
-        co_spawn(ctx, usrv::session(s, handler, reporter), asio::use_future);
+    auto future = co_spawn(
+        ctx.get_executor(), usrv::session(s, handler, reporter),
+        asio::use_future);
 
     REQUIRE(ctx.run() > 0);
 
@@ -152,10 +162,15 @@ TEST_CASE("session", "[session]")
 
 TEST_CASE("session_error", "[session]")
 {
-    asio::io_context ctx;
-    test::mock_sock<std::string> s(ctx.get_executor());
+    using buffer = std::string;
+    using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
+    using tcp_socket = default_token::as_default_on_t<
+        test::mock_sock<buffer, asio::io_context::executor_type>>;
 
-    const std::string data = "GET / xxx HTTP/1.0\r\n\r\n";
+    asio::io_context ctx;
+    tcp_socket s(ctx.get_executor());
+
+    const buffer data = "GET / xxx HTTP/1.0\r\n\r\n";
     s.set_rx(data);
 
     bool handler_called = false;

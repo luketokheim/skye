@@ -2,6 +2,7 @@
 
 #include <httpmicroservice/session.hpp>
 
+#include <boost/asio/as_tuple.hpp>
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/io_context.hpp>
@@ -33,10 +34,7 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
     using tcp = asio::ip::tcp;
 
     for (;;) {
-        boost::system::error_code ec;
-
-        auto stream = co_await acceptor.async_accept(
-            asio::redirect_error(asio::use_awaitable, ec));
+        auto [ec, stream] = co_await acceptor.async_accept();
 
         if (ec == boost::system::errc::too_many_files_open) {
             continue;
@@ -72,10 +70,12 @@ template <typename Handler, typename Reporter>
 asio::awaitable<void> listen(int port, Handler handler, Reporter reporter)
 {
     using tcp = asio::ip::tcp;
+    using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
+    using tcp_acceptor = default_token::as_default_on_t<tcp::acceptor>;
 
     tcp::endpoint endpoint{tcp::v4(), static_cast<asio::ip::port_type>(port)};
 
-    tcp::acceptor acceptor{co_await asio::this_coro::executor, endpoint};
+    tcp_acceptor acceptor{co_await asio::this_coro::executor, endpoint};
 
     co_await accept(
         std::move(acceptor), std::move(handler), std::move(reporter));
