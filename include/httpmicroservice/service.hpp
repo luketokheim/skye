@@ -36,7 +36,7 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
     for (;;) {
         auto [ec, stream] = co_await acceptor.async_accept();
 
-        if (ec == boost::system::errc::too_many_files_open) {
+        if (ec == asio::error::no_descriptors) {
             continue;
         }
 

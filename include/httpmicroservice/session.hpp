@@ -6,6 +6,7 @@
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/write.hpp>
+#include <fmt/core.h>
 
 #include <chrono>
 #include <type_traits>
@@ -65,6 +66,10 @@ session(AsyncStream stream, Handler handler, Reporter reporter)
             }
 
             if (ec) {
+                if (ec != asio::error::connection_reset &&
+                    ec != asio::error::connection_aborted) {
+                    fmt::print("async_read = {} {}\n", ec.value(), ec.message());
+                }
                 break;
             }
 
@@ -84,6 +89,10 @@ session(AsyncStream stream, Handler handler, Reporter reporter)
         auto [ec, bytes_write] = co_await http::async_write(stream, res);
 
         if (ec) {
+            if (ec != asio::error::connection_reset &&
+                ec != asio::error::connection_aborted) {
+                fmt::print("async_write = {} {}\n", ec.value(), ec.message());
+            }
             break;
         }
 
