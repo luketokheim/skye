@@ -9,6 +9,13 @@ add_library(httpmicroservice::httpmicroservice ALIAS httpmicroservice)
 target_compile_features(httpmicroservice PUBLIC cxx_std_20)
 target_include_directories(httpmicroservice PUBLIC include)
 
+# BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT
+target_compile_definitions(
+    httpmicroservice
+    PUBLIC
+    BOOST_ASIO_NO_DEPRECATED
+    BOOST_ASIO_DISABLE_THREADS)
+
 # g++-10 or newer on Linux
 if(CMAKE_COMPILER_IS_GNUCXX)
     find_package(Threads)
