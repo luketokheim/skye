@@ -10,17 +10,23 @@ namespace test {
   Model the AsyncStream type concept for Boost beast and asio. Allow us to test
   the session(...) loop with random input data and verify the roundtrip.
 
-  https://www.boost.org/doc/libs/1_80_0/doc/html/boost_asio/reference/AsyncReadStream.html
-  https://www.boost.org/doc/libs/1_80_0/doc/html/boost_asio/reference/AsyncWriteStream.html
+  https://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/AsyncReadStream.html
+  https://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/AsyncWriteStream.html
  */
-template <typename Buffer>
+template <typename Buffer, typename Executor>
 class mock_sock {
 public:
-    using executor_type = boost::asio::io_context::executor_type;
+    using executor_type = Executor;
+
+    // Need this to specialize default completion handlers for as_tuple_t, etc.
+    template <typename Executor1>
+    struct rebind_executor {
+        typedef mock_sock<Buffer, Executor1> other;
+    };
 
     enum shutdown_type { shutdown_receive, shutdown_send, shutdown_both };
 
-    mock_sock(executor_type ex)
+    explicit mock_sock(executor_type ex)
         : ex_{ex}, rx_{std::make_shared<Buffer>()},
           tx_{std::make_shared<Buffer>()}
     {

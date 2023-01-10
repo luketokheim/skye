@@ -68,9 +68,9 @@ TEST_CASE("async_run", "[service]")
     auto client = std::async(std::launch::async, [req]() {
         asio::io_context ioc;
 
-        tcp::resolver resolver(ioc);
-        const tcp::endpoint endpoint =
-            *resolver.resolve("127.0.0.1", std::to_string(kPort));
+        const tcp::endpoint endpoint{
+            asio::ip::make_address("127.0.0.1"),
+            static_cast<asio::ip::port_type>(kPort)};
 
         boost::system::error_code ec;
 
@@ -219,8 +219,9 @@ TEST_CASE("integration", "[service]")
     auto client_partial_write = [&num_client]() -> asio::awaitable<void> {
         // Send partial request and close socket
         {
-            tcp::endpoint endpoint(
-                asio::ip::address_v4::from_string("127.0.0.1"), kPort);
+            const tcp::endpoint endpoint{
+                asio::ip::make_address("127.0.0.1"),
+                static_cast<asio::ip::port_type>(kPort)};
 
             tcp::socket socket{co_await asio::this_coro::executor};
 
@@ -251,8 +252,9 @@ TEST_CASE("integration", "[service]")
     auto client_partial_read = [&num_client]() -> asio::awaitable<void> {
         // Send complete request, do partial read
         {
-            tcp::endpoint endpoint(
-                asio::ip::address_v4::from_string("127.0.0.1"), kPort);
+            const tcp::endpoint endpoint{
+                asio::ip::make_address("127.0.0.1"),
+                static_cast<asio::ip::port_type>(kPort)};
 
             tcp::socket socket{co_await asio::this_coro::executor};
 

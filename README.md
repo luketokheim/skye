@@ -32,21 +32,18 @@ namespace usrv = httpmicroservice;
 
 int main()
 {
-      asio::io_context ioc;
+    // Listen on port 8080 and route all HTTP requests to the hello_world handler
+    usrv::run(8080, hello_world);
 
-      // Listen on port 8080 and route all HTTP requests to the hello_world handler
-      usrv::async_run(ioc, 8080, hello_world);
-
-      // Run event processing loop
-      ioc.run();
-
-      return 0;
+    return 0;
 }
 ```
 
 Asio has excellent docs. Refer to those for more details on
-[io_context](https://think-async.com/Asio/asio-1.24.0/doc/asio/overview/basics.html)
-and [awaitable](https://think-async.com/Asio/asio-1.24.0/doc/asio/overview/composition/cpp20_coroutines.html).
+[Basic Asio Anatomy](https://think-async.com/Asio/asio-1.24.0/doc/asio/overview/basics.html)
+and [C++20 Coroutines Support](https://think-async.com/Asio/asio-1.24.0/doc/asio/overview/composition/cpp20_coroutines.html).
+
+## Docker
 
 Build a Docker image that runs the [Hello World](examples/hello.cpp) web service.
 
@@ -54,12 +51,15 @@ Build a Docker image that runs the [Hello World](examples/hello.cpp) web service
 docker build -t httpmicroservice-cpp .
 ```
 
+Run the container.
+
 ```console
 docker run --rm -p 8080:8080 httpmicroservice-cpp
 ```
 
 The image is based on the empty Docker "scratch" image and only contains the
-single binary [Hello World](examples/hello.cpp) example server.
+single binary [Hello World](examples/hello.cpp) example server. The image
+requires the io_uring kernel interface.
 
 ## Design
 
@@ -82,6 +82,28 @@ features that I omitted.
 - No request or keep alive timeouts
 - No request target resource to handler mapping
 - No static content or nice error pages
+
+## Async
+
+The server uses only asynchronous operations. If you have used Asio before then
+this main function will look more familiar.
+
+```cpp
+int main()
+{
+    asio::io_context ioc;
+
+    // Listen on port 8080 and route all HTTP requests to the hello_world handler
+    usrv::async_run(ioc, 8080, hello_world);
+
+    // Run event processing loop
+    ioc.run();
+
+    return 0;
+}
+```
+
+Most of my usage is with a single thread calling io_context::run().
 
 ## Requirements
 
