@@ -36,12 +36,8 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
     for (;;) {
         auto [ec, stream] = co_await acceptor.async_accept();
 
-        if (ec == asio::error::no_descriptors) {
-            continue;
-        }
-
         if (ec) {
-            break;
+            continue;
         }
 
         stream.set_option(tcp::no_delay{true}, ec);
