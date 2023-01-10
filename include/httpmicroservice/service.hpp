@@ -2,10 +2,12 @@
 
 #include <httpmicroservice/session.hpp>
 
+#include <boost/asio/as_tuple.hpp>
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/signal_set.hpp>
 #include <boost/asio/use_awaitable.hpp>
 
 #include <exception>
@@ -33,13 +35,10 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
     using tcp = asio::ip::tcp;
 
     for (;;) {
-        boost::system::error_code ec;
-
-        auto stream = co_await acceptor.async_accept(
-            asio::redirect_error(asio::use_awaitable, ec));
+        auto [ec, stream] = co_await acceptor.async_accept();
 
         if (ec) {
-            break;
+            continue;
         }
 
         stream.set_option(tcp::no_delay{true}, ec);
@@ -68,10 +67,12 @@ template <typename Handler, typename Reporter>
 asio::awaitable<void> listen(int port, Handler handler, Reporter reporter)
 {
     using tcp = asio::ip::tcp;
+    using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
+    using tcp_acceptor = default_token::as_default_on_t<tcp::acceptor>;
 
     tcp::endpoint endpoint{tcp::v4(), static_cast<asio::ip::port_type>(port)};
 
-    tcp::acceptor acceptor{co_await asio::this_coro::executor, endpoint};
+    tcp_acceptor acceptor{co_await asio::this_coro::executor, endpoint};
 
     co_await accept(
         std::move(acceptor), std::move(handler), std::move(reporter));
@@ -99,6 +100,34 @@ void async_run(
                 std::rethrow_exception(ptr);
             }
         });
+}
+
+/**
+  Run a server. Listen on port and route all requests to the handler function
+  object.
+
+  Run event loop "forever" on this thread. Handle signals to stop cleanly.
+
+  Opinionated design for use in Docker container behind load balancer. Listen on
+  port until docker sends a SIGTERM. Single thread, scale service horizontally
+  with more instances.
+*/
+template <typename Handler, typename Reporter = bool>
+void run(int port, Handler handler, Reporter reporter = {})
+{
+    // Concurrency hint to asio that we are single threaded
+    asio::io_context ioc{1};
+
+    // Listen on port and route all HTTP requests to the handler
+    async_run(ioc, port, std::move(handler), std::move(reporter));
+
+    // SIGTERM is sent by Docker to ask us to stop (politely)
+    // SIGINT handles local Ctrl+C in a terminal
+    asio::signal_set signals{ioc, SIGINT, SIGTERM};
+    signals.async_wait([&ioc](auto ec, auto sig) { ioc.stop(); });
+
+    // Run event processing loop
+    ioc.run();
 }
 
 /**

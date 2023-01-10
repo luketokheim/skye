@@ -3,8 +3,6 @@
 #include <httpmicroservice/types.hpp>
 
 #include <boost/asio/awaitable.hpp>
-#include <boost/asio/redirect_error.hpp>
-#include <boost/asio/use_awaitable.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/write.hpp>
@@ -53,15 +51,13 @@ session(AsyncStream stream, Handler handler, Reporter reporter)
     }
 
     boost::beast::flat_buffer buffer{kRequestSizeLimit};
-    boost::system::error_code ec;
 
     for (;;) {
         // req = read(...)
         request req;
         {
-            const auto bytes_read = co_await http::async_read(
-                stream, buffer, req,
-                asio::redirect_error(asio::use_awaitable, ec));
+            auto [ec, bytes_read] =
+                co_await http::async_read(stream, buffer, req);
 
             if (ec == http::error::end_of_stream) {
                 stream.shutdown(AsyncStream::shutdown_send, ec);
@@ -85,8 +81,7 @@ session(AsyncStream stream, Handler handler, Reporter reporter)
         res.keep_alive(keep_alive);
 
         // write(res)
-        const auto bytes_write = co_await http::async_write(
-            stream, res, asio::redirect_error(asio::use_awaitable, ec));
+        auto [ec, bytes_write] = co_await http::async_write(stream, res);
 
         if (ec) {
             break;
