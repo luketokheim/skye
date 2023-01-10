@@ -7,6 +7,7 @@
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/signal_set.hpp>
 #include <boost/asio/use_awaitable.hpp>
 
 #include <exception>
@@ -99,6 +100,34 @@ void async_run(
                 std::rethrow_exception(ptr);
             }
         });
+}
+
+/**
+  Run a server. Listen on port and route all requests to the handler function
+  object.
+
+  Run event loop "forever" on this thread. Handle signals to stop cleanly.
+
+  Opinionated design for use in Docker container behind load balancer. Listen on
+  port until docker sends a SIGTERM. Single thread, scale service horizontally
+  with more instances.
+*/
+template <typename Handler, typename Reporter = bool>
+void run(int port, Handler handler, Reporter reporter = {})
+{
+    // Concurrency hint to asio that we are single threaded
+    asio::io_context ioc{1};
+
+    // Listen on port and route all HTTP requests to the handler
+    async_run(ioc, port, std::move(handler), std::move(reporter));
+
+    // SIGTERM is sent by Docker to ask us to stop (politely)
+    // SIGINT handles local Ctrl+C in a terminal
+    asio::signal_set signals{ioc, SIGINT, SIGTERM};
+    signals.async_wait([&ioc](auto ec, auto sig) { ioc.stop(); });
+
+    // Run event processing loop
+    ioc.run();
 }
 
 /**

@@ -1,11 +1,5 @@
 #include <httpmicroservice/service.hpp>
 
-#include <boost/asio/signal_set.hpp>
-#include <fmt/core.h>
-
-#include <cstdio>
-#include <exception>
-
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
 namespace usrv = httpmicroservice;
@@ -21,27 +15,12 @@ asio::awaitable<usrv::response> hello(usrv::request req)
 
 int main()
 {
-    try {
-        const int port = usrv::getenv_port();
+    // Listen on 8080 or PORT env var.
+    const int port = usrv::getenv_port();
 
-        asio::io_context ioc;
+    // Listen on port and route all HTTP requests to hello. Installs a signal
+    // handler for SIGINT and SIGTERM to cleanly stop the server.
+    usrv::run(port, hello);
 
-        // Single threaded. The request handler runs in the http service thread.
-        usrv::async_run(ioc, port, hello);
-
-        // SIGTERM is sent by Docker to ask us to stop (politely)
-        // SIGINT handles local Ctrl+C in a terminal
-        asio::signal_set signals{ioc, SIGINT, SIGTERM};
-        signals.async_wait([&ioc](auto ec, auto sig) { ioc.stop(); });
-
-        ioc.run();
-
-        return 0;
-    } catch (std::exception& e) {
-        fmt::print(stderr, "{}\n", e.what());
-    } catch (...) {
-        fmt::print(stderr, "unknown exception\n");
-    }
-
-    return -1;
+    return 0;
 }
