@@ -9,14 +9,6 @@ add_library(httpmicroservice::httpmicroservice ALIAS httpmicroservice)
 target_compile_features(httpmicroservice PUBLIC cxx_std_20)
 target_include_directories(httpmicroservice PUBLIC include)
 
-# Set default construction of asio::io_context for single thread
-target_compile_definitions(
-    httpmicroservice
-    PUBLIC
-    BOOST_ASIO_NO_DEPRECATED
-    BOOST_ASIO_CONCURRENCY_HINT_DEFAULT=1
-    BOOST_ASIO_CONCURRENCY_HINT_1=BOOST_ASIO_CONCURRENCY_HINT_UNSAFE)
-
 # g++-10 or newer on Linux
 if(CMAKE_COMPILER_IS_GNUCXX)
     find_package(Threads)
