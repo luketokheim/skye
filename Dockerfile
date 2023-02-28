@@ -1,21 +1,23 @@
 #
+# Build on Alpine with g++ and musl/libc. Link statically for a portable binary.
+# Run on scratch.
+#
 # docker build -t httpmicroservice-cpp .
 # docker run --rm -p 8080:8080 httpmicroservice-cpp
 #
-FROM alpine:latest as builder
+FROM alpine:3.17 as builder
 
 # Install build requirements from package repo
 RUN apk update && apk add --no-cache \
     cmake \
     g++ \
-    liburing-dev \
     linux-headers \
     make \
     ninja \
     py-pip
 
 # Install conan package manager
-RUN pip install conan --upgrade && conan profile new default --detect
+RUN pip install conan && conan profile detect
 
 # Copy repo source code
 COPY . /source
@@ -24,7 +26,7 @@ COPY . /source
 WORKDIR /source/build
 
 # Download dependencies and generate cmake toolchain file
-RUN conan install .. --build=missing
+RUN conan install .. --output-folder=. --build=missing
 
 # Configure, build with static musl/libc and libstdc++ so we can run on the
 # scratch empty base image
@@ -32,7 +34,7 @@ RUN cmake .. -GNinja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake \
     -DENABLE_STANDALONE=ON \
-    -DENABLE_IO_URING=ON \
+    -DENABLE_IO_URING=OFF \
     -DBUILD_TESTING=OFF
 
 # Build
