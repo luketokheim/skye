@@ -36,6 +36,7 @@ option(
     "Compile standalone app with static linked C/C++"
     OFF)
 if(CMAKE_COMPILER_IS_GNUCXX AND ENABLE_STANDALONE)
+    target_compile_definitions(httpmicroservice PUBLIC FMT_HEADER_ONLY=1)
     target_compile_options(httpmicroservice PUBLIC -static-libstdc++ -static)
     target_link_options(httpmicroservice PUBLIC -static-libstdc++ -static)
 endif()

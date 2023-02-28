@@ -1,20 +1,19 @@
 #
-# Build on Alpine with g++ and musl/libc. Link statically for a portable binary.
-# Run on scratch.
+# Build on Ubuntu 22.04 LTS (Jammy Jellyfish) with g++ and libstdc++. Link
+# statically so we have a portable binary. Run on scratch.
 #
 # docker build -t httpmicroservice-cpp .
 # docker run --rm -p 8080:8080 httpmicroservice-cpp
 #
-FROM alpine:3.17 as builder
+FROM ubuntu:jammy as builder
 
 # Install build requirements from package repo
-RUN apk update && apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     cmake \
-    g++ \
-    linux-headers \
+    g++-12 \
     make \
-    ninja \
-    py-pip
+    ninja-build \
+    python3-pip
 
 # Install conan package manager
 RUN pip install conan && conan profile detect

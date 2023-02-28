@@ -1,6 +1,9 @@
 #
-# Build on Alpine with g++ and musl/libc. Link statically for a portable binary.
-# Run on scratch.
+# Build on Alpine with g++, musl, and libstdc++. Link statically so we have a
+# portable binary. Run on scratch.
+#
+# Enables io_uring for the socket I/O requests. Your target system must support
+# the io_uring interface.
 #
 # docker build -t httpmicroservice-cpp .
 # docker run --rm -p 8080:8080 httpmicroservice-cpp
@@ -12,6 +15,7 @@ RUN apk update && apk add --no-cache \
     cmake \
     g++ \
     linux-headers \
+    liburing-dev \
     make \
     ninja \
     py-pip
@@ -34,7 +38,7 @@ RUN cmake .. -GNinja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake \
     -DENABLE_STANDALONE=ON \
-    -DENABLE_IO_URING=OFF \
+    -DENABLE_IO_URING=ON \
     -DBUILD_TESTING=OFF
 
 # Build
