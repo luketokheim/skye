@@ -38,7 +38,7 @@ jobs:
       # Download packages listed in our manifest. Generate toolchain file for
       # CMake so that we can use find_package(...) to find deps
       #
-      run: conan install . --output-folder=build --build=missing
+      run: conan install . --build-folder=build --build=missing
 
     - name: Configure
       #
