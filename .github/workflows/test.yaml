@@ -48,18 +48,15 @@ jobs:
       #
       run: >
         pipx install conan
-        && conan profile new default --detect
+        && conan profile detect
 
     - name: Install dependencies
       #
       # Download packages listed in our manifest. Generate toolchain file for
       # CMake so that we can use find_package(...) to find deps.
       #
-      run: >
-        install -d build
-        && cd build
-        && conan install .. --build=missing
-
+      run: conan install . --output-folder=build --build=missing
+      
     - name: Configure
       #
       # Configure CMake in the "build" subdirectory.
