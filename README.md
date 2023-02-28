@@ -58,8 +58,7 @@ docker run --rm -p 8080:8080 httpmicroservice-cpp
 ```
 
 The image is based on the empty Docker "scratch" image and only contains the
-single binary [Hello World](examples/hello.cpp) example server. The image
-requires the io_uring kernel interface.
+single binary [Hello World](examples/hello.cpp) example server.
 
 ## Design
 
