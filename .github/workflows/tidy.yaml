@@ -24,7 +24,7 @@ jobs:
 
     - name: Install package manager
       run: >
-        pipx install conan
+        pipx install conan==1.59.0
         && conan profile new default --detect
         && conan profile update settings.compiler.libcxx=libc++ default
 
@@ -33,10 +33,7 @@ jobs:
       # Download packages listed in our manifest. Generate toolchain file for
       # CMake so that we can use find_package(...) to find deps
       #
-      run: >
-        install -d build
-        && cd build
-        && conan install .. --build=missing
+      run: conan install . --output-folder=build --build=missing
 
     - name: Configure
       #
