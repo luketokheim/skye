@@ -47,8 +47,8 @@ jobs:
       #   settings.compiler.libcxx=libstdc++
       #
       run: >
-        pipx install conan
-        && conan profile detect
+        pipx install conan==1.59.0
+        && conan profile new default --detect
 
     - name: Install dependencies
       #
