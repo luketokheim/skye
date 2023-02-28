@@ -17,13 +17,13 @@ namespace http = boost::beast::http;
 /**
   Rationale: We intend to create callable microservices that will receive
   binary, image, or JSON data in the body of the request. Make it simple to
-  retrieve the entire body as a std::string.
+  read the entire body as a std::string.
  */
 using request = http::request<http::string_body>;
 
 /**
   Rationale: We intend to run a function and return the results in the body of
-  the response. Since the results are all in memory make it simple to set the
+  the response. Since the results are all in memory make it simple to write the
   body with a std::string.
  */
 using response = http::response<http::string_body>;
