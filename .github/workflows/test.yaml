@@ -47,7 +47,7 @@ jobs:
       #   settings.compiler.libcxx=libstdc++
       #
       run: >
-        pipx install conan
+        pipx install conan==1.59.0
         && conan profile new default --detect
 
     - name: Install dependencies
@@ -55,11 +55,8 @@ jobs:
       # Download packages listed in our manifest. Generate toolchain file for
       # CMake so that we can use find_package(...) to find deps.
       #
-      run: >
-        install -d build
-        && cd build
-        && conan install .. --build=missing
-
+      run: conan install . --install-folder=build --build=missing
+      
     - name: Configure
       #
       # Configure CMake in the "build" subdirectory.

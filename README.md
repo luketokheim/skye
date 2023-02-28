@@ -58,8 +58,7 @@ docker run --rm -p 8080:8080 httpmicroservice-cpp
 ```
 
 The image is based on the empty Docker "scratch" image and only contains the
-single binary [Hello World](examples/hello.cpp) example server. The image
-requires the io_uring kernel interface.
+single binary [Hello World](examples/hello.cpp) example server.
 
 ## Design
 
@@ -117,13 +116,14 @@ Kohlhoff.
 - [Boost.Beast](https://github.com/boostorg/beast) to parse HTTP requests and form responses
 - [Catch2](https://github.com/catchorg/Catch2) to run tests for continuous integration
 
-I recommend installing io_uring (liburing-dev) on Linux if available. It is
-enabled on the Docker and Continuous Deployment (CD) builds and works on the Cloud Run
-[second generation](https://cloud.google.com/run/docs/about-execution-environments)
-execution environment.
+For production use I recommend using io_uring (liburing-dev) on Linux if
+available. It is enabled by default with the ENABLE_IO_URING CMake option if
+liburing is found. The Docker and Continuous Deployment (CD) builds do not
+install that library to maximize compatibility.
 
-The managed container runtimes on AWS (App Runner) and Azure (Container Apps)
-do not support io_uring.
+Cloud Run [second generation](https://cloud.google.com/run/docs/about-execution-environments)
+execution environment supports io_uring but the managed container runtimes on
+AWS (App Runner) and Azure (Container Apps) do not.
 
 ## Compilers
 
@@ -144,15 +144,14 @@ for Continuous Integration (CI) and its Docker images.
 Create a build folder and install dependencies with the package manager.
 
 ```console
-mkdir build
-cd build
-conan install .. --build=missing
+conan install . --output-folder=build --build=missing
 ```
 
 Use the toolchain file created by the package manager so cmake can locate
 libraries with [find_package](https://cmake.org/cmake/help/latest/command/find_package.html).
 
 ```console
+cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
 cmake --build . --config=Release
 ```
