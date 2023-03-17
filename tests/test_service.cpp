@@ -17,7 +17,7 @@
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
 
-TEST_CASE("async_run", "[service]")
+TEST_CASE("async_run", "[skye][service]")
 {
     using namespace std::chrono_literals;
     using tcp = boost::asio::ip::tcp;
@@ -115,7 +115,7 @@ TEST_CASE("async_run", "[service]")
     REQUIRE_NOTHROW(server.get());
 }
 
-TEST_CASE("make_co_handler", "[service]")
+TEST_CASE("make_co_handler", "[skye][service]")
 {
     asio::io_context ioc;
 
@@ -147,7 +147,7 @@ TEST_CASE("make_co_handler", "[service]")
     REQUIRE_THROWS(ioc.run());
 }
 
-TEST_CASE("async_run_functor", "[service]")
+TEST_CASE("async_run_functor", "[skye][service]")
 {
     constexpr auto kPort = 8080;
 
@@ -172,7 +172,7 @@ TEST_CASE("async_run_functor", "[service]")
     REQUIRE(ioc.run_one() > 0);
 }
 
-TEST_CASE("async_run_context", "[service]")
+TEST_CASE("async_run_context", "[skye][service]")
 {
     constexpr auto kPort = 8080;
 
@@ -188,7 +188,7 @@ TEST_CASE("async_run_context", "[service]")
     });
 }
 
-TEST_CASE("integration", "[service]")
+TEST_CASE("integration", "[skye][service]")
 {
     using namespace std::chrono_literals;
     using tcp = boost::asio::ip::tcp;

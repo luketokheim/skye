@@ -12,7 +12,7 @@
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
 
-TEST_CASE("async_read_some", "[mock_sock]")
+TEST_CASE("async_read_some", "[test][mock_sock]")
 {
     using buffer = std::vector<char>;
     using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
@@ -39,7 +39,7 @@ TEST_CASE("async_read_some", "[mock_sock]")
     }
 }
 
-TEST_CASE("async_read", "[mock_sock]")
+TEST_CASE("async_read", "[test][mock_sock]")
 {
     using buffer = std::vector<char>;
     using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
@@ -66,7 +66,7 @@ TEST_CASE("async_read", "[mock_sock]")
     }
 }
 
-TEST_CASE("async_write_some", "[mock_sock]")
+TEST_CASE("async_write_some", "[test][mock_sock]")
 {
     using buffer = std::vector<char>;
     using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
@@ -90,7 +90,7 @@ TEST_CASE("async_write_some", "[mock_sock]")
     }
 }
 
-TEST_CASE("async_write", "[mock_sock]")
+TEST_CASE("async_write", "[test][mock_sock]")
 {
     using buffer = std::vector<char>;
     using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
@@ -114,7 +114,7 @@ TEST_CASE("async_write", "[mock_sock]")
     }
 }
 
-TEST_CASE("session", "[session]")
+TEST_CASE("session_ok", "[skye][session]")
 {
     using buffer = std::string;
     using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
@@ -159,7 +159,7 @@ TEST_CASE("session", "[session]")
     REQUIRE(handler_called == 1);
 }
 
-TEST_CASE("session_error", "[session]")
+TEST_CASE("session_error", "[skye][session]")
 {
     using buffer = std::string;
     using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
