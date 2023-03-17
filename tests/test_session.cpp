@@ -11,7 +11,6 @@
 
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
-namespace usrv = httpmicroservice;
 
 TEST_CASE("async_read_some", "[mock_sock]")
 {
@@ -132,20 +131,20 @@ TEST_CASE("session", "[session]")
 
     int handler_called = 0;
     auto handler = [&body, &handler_called](
-                       usrv::request req) -> asio::awaitable<usrv::response> {
+                       skye::request req) -> asio::awaitable<skye::response> {
         ++handler_called;
 
-        usrv::response res(http::status::ok, req.version());
+        skye::response res(http::status::ok, req.version());
         res.body() = body;
 
         co_return res;
     };
 
-    usrv::session_stats stats;
-    auto reporter = [&stats](const usrv::session_stats& s) { stats = s; };
+    skye::session_metrics metrics;
+    auto reporter = [&metrics](const skye::session_metrics& m) { metrics = m; };
 
     auto future = co_spawn(
-        ctx.get_executor(), usrv::session(s, handler, reporter),
+        ctx.get_executor(), skye::session(s, handler, reporter),
         asio::use_future);
 
     REQUIRE(ctx.run() > 0);
@@ -153,8 +152,8 @@ TEST_CASE("session", "[session]")
     REQUIRE(future.valid());
     future.get();
 
-    REQUIRE(stats.num_request == 1);
-    REQUIRE(stats.bytes_read == data.size());
+    REQUIRE(metrics.num_request == 1);
+    REQUIRE(metrics.bytes_read == data.size());
 
     REQUIRE(s.get_tx().ends_with(body));
     REQUIRE(handler_called == 1);
@@ -175,22 +174,22 @@ TEST_CASE("session_error", "[session]")
 
     bool handler_called = false;
     auto handler = [&handler_called](
-                       usrv::request req) -> asio::awaitable<usrv::response> {
+                       skye::request req) -> asio::awaitable<skye::response> {
         handler_called = true;
-        co_return usrv::response{http::status::ok, req.version()};
+        co_return skye::response{http::status::ok, req.version()};
     };
 
-    usrv::session_stats stats;
-    auto reporter = [&stats](const usrv::session_stats& s) { stats = s; };
+    skye::session_metrics metrics;
+    auto reporter = [&metrics](const skye::session_metrics& m) { metrics = m; };
 
     auto future =
-        co_spawn(ctx, usrv::session(s, handler, reporter), asio::use_future);
+        co_spawn(ctx, skye::session(s, handler, reporter), asio::use_future);
 
     REQUIRE(ctx.run() > 0);
 
     REQUIRE(future.valid());
     future.get();
 
-    REQUIRE(stats.num_request == 0);
+    REQUIRE(metrics.num_request == 0);
     REQUIRE(!handler_called);
 }

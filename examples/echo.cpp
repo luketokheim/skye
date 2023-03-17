@@ -9,13 +9,12 @@
 
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
-namespace usrv = httpmicroservice;
 
 // Handle POST requests, echo back the body contents
-usrv::response post(const usrv::request& req)
+skye::response post(const skye::request& req)
 {
     // Echo the POST request body
-    usrv::response res{http::status::ok, req.version()};
+    skye::response res{http::status::ok, req.version()};
     res.set(http::field::content_type, "text/plain");
     res.body() = req.body();
 
@@ -34,17 +33,18 @@ usrv::response post(const usrv::request& req)
 }
 
 // Handle GET requests, echo back the target path
-usrv::response get(const usrv::request& req)
+skye::response get(const skye::request& req)
 {
     // This is how to to respond with a "404 Not Found"
     if (req.target() == "/not_found") {
-        return usrv::response{http::status::not_found, req.version()};
+        return skye::response{http::status::not_found, req.version()};
     }
 
     // Convert from boost::string_view
     std::string_view target{req.target().data(), req.target().size()};
+    req.target() = std::string_view{"Hello"};
 
-    usrv::response res{http::status::ok, req.version()};
+    skye::response res{http::status::ok, req.version()};
     res.set(http::field::content_type, "application/json");
     res.body() = fmt::format("{{\"hello\": \"{}\"}}", target);
 
@@ -52,7 +52,7 @@ usrv::response get(const usrv::request& req)
 }
 
 // Route requests based on the method GET or POST
-asio::awaitable<usrv::response> echo(usrv::request req)
+asio::awaitable<skye::response> echo(skye::request req)
 {
     switch (req.method()) {
     case http::verb::get:
@@ -62,7 +62,7 @@ asio::awaitable<usrv::response> echo(usrv::request req)
         co_return post(req);
         break;
     default:
-        co_return usrv::response{
+        co_return skye::response{
             http::status::method_not_allowed, req.version()};
     }
 }
@@ -70,11 +70,11 @@ asio::awaitable<usrv::response> echo(usrv::request req)
 int main()
 {
     try {
-        const int port = usrv::getenv_port();
+        const int port = skye::getenv_port();
 
         asio::io_context ioc;
 
-        usrv::async_run(ioc, port, echo);
+        skye::async_run(ioc, port, echo);
 
         // SIGTERM is sent by Docker to ask us to stop (politely)
         // SIGINT handles local Ctrl+C in a terminal

@@ -16,7 +16,6 @@
 
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
-namespace usrv = httpmicroservice;
 
 TEST_CASE("async_run", "[service]")
 {
@@ -30,25 +29,25 @@ TEST_CASE("async_run", "[service]")
     // Create a handler that returns random data in the body
     auto body = test::make_random_string<std::string>(kBodyNumBytes);
     auto handler = [body](auto req) {
-        usrv::response res(http::status::ok, req.version());
+        skye::response res(http::status::ok, req.version());
         res.set(http::field::content_type, "text/html");
         res.body() = body;
         return res;
     };
 
     auto awaitable_handler =
-        [handler](auto req) -> asio::awaitable<usrv::response> {
+        [handler](auto req) -> asio::awaitable<skye::response> {
         auto res = handler(std::move(req));
         co_return res;
     };
 
-    auto reporter = [](const usrv::session_stats& stats) {
-        REQUIRE(stats.fd > 0);
+    auto reporter = [](const skye::session_metrics& metrics) {
+        REQUIRE(metrics.fd > 0);
 
-        if (stats.num_request > 0) {
-            REQUIRE(stats.bytes_read > 0);
-            REQUIRE(stats.bytes_write > 0);
-            REQUIRE(stats.end_time > stats.start_time);
+        if (metrics.num_request > 0) {
+            REQUIRE(metrics.bytes_read > 0);
+            REQUIRE(metrics.bytes_write > 0);
+            REQUIRE(metrics.end_time > metrics.start_time);
         }
     };
 
@@ -56,12 +55,12 @@ TEST_CASE("async_run", "[service]")
     asio::io_context ioc;
     auto server =
         std::async(std::launch::async, [&ioc, awaitable_handler, reporter]() {
-            usrv::async_run(ioc, kPort, awaitable_handler, reporter);
+            skye::async_run(ioc, kPort, awaitable_handler, reporter);
 
             ioc.run_for(5s);
         });
 
-    usrv::request req(http::verb::get, "/", kHttpVersion);
+    skye::request req(http::verb::get, "/", kHttpVersion);
 
     // Run a HTTP client in its own thread, get http://localhost:8080/
     // https://github.com/boostorg/beast/blob/develop/example/http/client/sync/http_client_sync.cpp
@@ -93,7 +92,7 @@ TEST_CASE("async_run", "[service]")
 
         boost::beast::flat_buffer buffer;
 
-        usrv::response res;
+        skye::response res;
         http::read(stream, buffer, res, ec);
 
         stream.socket().shutdown(tcp::socket::shutdown_both);
@@ -123,21 +122,21 @@ TEST_CASE("make_co_handler", "[service]")
     const auto tid = std::this_thread::get_id();
 
     auto awaitable_handler =
-        [tid](usrv::request req) -> asio::awaitable<usrv::response> {
+        [tid](skye::request req) -> asio::awaitable<skye::response> {
         REQUIRE(tid != std::this_thread::get_id());
 
         throw std::exception{};
-        co_return usrv::response{};
+        co_return skye::response{};
     };
 
     asio::thread_pool pool{1};
 
-    auto co_handler = usrv::make_co_handler(pool, awaitable_handler);
+    auto co_handler = skye::make_co_handler(pool, awaitable_handler);
 
     co_spawn(
         ioc,
         [co_handler]() -> asio::awaitable<void> {
-            usrv::request req(usrv::http::verb::get, "/", 11);
+            skye::request req(skye::http::verb::get, "/", 11);
             co_await co_handler(req);
         },
         [](auto ptr) {
@@ -153,9 +152,9 @@ TEST_CASE("async_run_functor", "[service]")
     constexpr auto kPort = 8080;
 
     struct Handler {
-        asio::awaitable<usrv::response> operator()(usrv::request req) const
+        asio::awaitable<skye::response> operator()(skye::request req) const
         {
-            co_return usrv::response{http::status::ok, req.version()};
+            co_return skye::response{http::status::ok, req.version()};
         }
 
         std::shared_ptr<int> ctx;
@@ -168,7 +167,7 @@ TEST_CASE("async_run_functor", "[service]")
 
     asio::io_context ioc;
 
-    usrv::async_run(ioc, kPort, handler);
+    skye::async_run(ioc, kPort, handler);
 
     REQUIRE(ioc.run_one() > 0);
 }
@@ -177,13 +176,13 @@ TEST_CASE("async_run_context", "[service]")
 {
     constexpr auto kPort = 8080;
 
-    auto handler = [](auto req) -> asio::awaitable<usrv::response> {
-        co_return usrv::response(http::status::ok, req.version());
+    auto handler = [](auto req) -> asio::awaitable<skye::response> {
+        co_return skye::response(http::status::ok, req.version());
     };
 
     auto server = std::async(std::launch::async, [handler]() {
         asio::io_context ioc;
-        usrv::async_run(ioc, kPort, handler);
+        skye::async_run(ioc, kPort, handler);
 
         REQUIRE(ioc.run_one() > 0);
     });
@@ -196,23 +195,23 @@ TEST_CASE("integration", "[service]")
 
     constexpr auto kPort = 8081;
 
-    auto handler = [](usrv::request req) -> asio::awaitable<usrv::response> {
-        co_return usrv::response{http::status::ok, req.version()};
+    auto handler = [](skye::request req) -> asio::awaitable<skye::response> {
+        co_return skye::response{http::status::ok, req.version()};
     };
 
-    auto reporter = [](const usrv::session_stats& stats) {
-        REQUIRE(stats.fd > 0);
+    auto reporter = [](const skye::session_metrics& metrics) {
+        REQUIRE(metrics.fd > 0);
 
-        if (stats.num_request > 0) {
-            REQUIRE(stats.bytes_read > 0);
-            REQUIRE(stats.bytes_write > 0);
-            REQUIRE(stats.end_time > stats.start_time);
+        if (metrics.num_request > 0) {
+            REQUIRE(metrics.bytes_read > 0);
+            REQUIRE(metrics.bytes_write > 0);
+            REQUIRE(metrics.end_time > metrics.start_time);
         }
     };
 
     asio::io_context ioc;
 
-    usrv::async_run(ioc, kPort, handler, reporter);
+    skye::async_run(ioc, kPort, handler, reporter);
 
     int num_client = 0;
 
