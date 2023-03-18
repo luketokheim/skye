@@ -1,8 +1,8 @@
 # Http Microservice for C++
 
-[![sanitizer](https://github.com/luketokheim/httpmicroservice-cpp/actions/workflows/sanitizer.yaml/badge.svg)](https://github.com/luketokheim/httpmicroservice-cpp/actions/workflows/sanitizer.yaml)
-[![test](https://github.com/luketokheim/httpmicroservice-cpp/actions/workflows/test.yaml/badge.svg)](https://github.com/luketokheim/httpmicroservice-cpp/actions/workflows/test.yaml)
-[![tidy](https://github.com/luketokheim/httpmicroservice-cpp/actions/workflows/tidy.yaml/badge.svg)](https://github.com/luketokheim/httpmicroservice-cpp/actions/workflows/tidy.yaml)
+[![sanitizer](https://github.com/luketokheim/skye/actions/workflows/sanitizer.yaml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/sanitizer.yaml)
+[![test](https://github.com/luketokheim/skye/actions/workflows/test.yaml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/test.yaml)
+[![tidy](https://github.com/luketokheim/skye/actions/workflows/tidy.yaml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/tidy.yaml)
 
 Run your C++ function as a containerized web service.
 
@@ -11,9 +11,9 @@ Run your C++ function as a containerized web service.
 A minimal service needs a request handler.
 
 ```cpp
-asio::awaitable<usrv::response> hello_world(usrv::request req)
+asio::awaitable<skye::response> hello_world(skye::request req)
 {
-    usrv::response res{http::status::ok, req.version()};
+    skye::response res{http::status::ok, req.version()};
     res.set(http::field::content_type, "text/plain");
     res.body() = "Hello World!";
 
@@ -24,16 +24,15 @@ asio::awaitable<usrv::response> hello_world(usrv::request req)
 And a main function.
 
 ```cpp
-#include <httpmicroservice/service.hpp>
+#include <skye/service.hpp>
 
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
-namespace usrv = httpmicroservice;
 
 int main()
 {
     // Listen on port 8080 and route all HTTP requests to the hello_world handler
-    usrv::run(8080, hello_world);
+    skye::run(8080, hello_world);
 
     return 0;
 }
@@ -48,13 +47,13 @@ and [C++20 Coroutines Support](https://think-async.com/Asio/asio-1.24.0/doc/asio
 Build a Docker image that runs the [Hello World](examples/hello.cpp) web service.
 
 ```console
-docker build -t httpmicroservice-cpp .
+docker build -t skye .
 ```
 
 Run the container.
 
 ```console
-docker run --rm -p 8080:8080 httpmicroservice-cpp
+docker run --rm -p 8080:8080 skye
 ```
 
 The image is based on the empty Docker "scratch" image and only contains the
@@ -93,7 +92,7 @@ int main()
     asio::io_context ioc;
 
     // Listen on port 8080 and route all HTTP requests to the hello_world handler
-    usrv::async_run(ioc, 8080, hello_world);
+    skye::async_run(ioc, 8080, hello_world);
 
     // Run event processing loop
     ioc.run();

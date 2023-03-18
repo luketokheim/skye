@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <httpmicroservice/session.hpp>
+#include <skye/session.hpp>
 
 #include "mock_sock.hpp"
 #include "test.hpp"
@@ -11,9 +11,8 @@
 
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
-namespace usrv = httpmicroservice;
 
-TEST_CASE("async_read_some", "[mock_sock]")
+TEST_CASE("async_read_some", "[test][mock_sock]")
 {
     using buffer = std::vector<char>;
     using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
@@ -40,7 +39,7 @@ TEST_CASE("async_read_some", "[mock_sock]")
     }
 }
 
-TEST_CASE("async_read", "[mock_sock]")
+TEST_CASE("async_read", "[test][mock_sock]")
 {
     using buffer = std::vector<char>;
     using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
@@ -67,7 +66,7 @@ TEST_CASE("async_read", "[mock_sock]")
     }
 }
 
-TEST_CASE("async_write_some", "[mock_sock]")
+TEST_CASE("async_write_some", "[test][mock_sock]")
 {
     using buffer = std::vector<char>;
     using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
@@ -91,7 +90,7 @@ TEST_CASE("async_write_some", "[mock_sock]")
     }
 }
 
-TEST_CASE("async_write", "[mock_sock]")
+TEST_CASE("async_write", "[test][mock_sock]")
 {
     using buffer = std::vector<char>;
     using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
@@ -115,7 +114,7 @@ TEST_CASE("async_write", "[mock_sock]")
     }
 }
 
-TEST_CASE("session", "[session]")
+TEST_CASE("session_ok", "[skye][session]")
 {
     using buffer = std::string;
     using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
@@ -132,20 +131,20 @@ TEST_CASE("session", "[session]")
 
     int handler_called = 0;
     auto handler = [&body, &handler_called](
-                       usrv::request req) -> asio::awaitable<usrv::response> {
+                       skye::request req) -> asio::awaitable<skye::response> {
         ++handler_called;
 
-        usrv::response res(http::status::ok, req.version());
+        skye::response res(http::status::ok, req.version());
         res.body() = body;
 
         co_return res;
     };
 
-    usrv::session_stats stats;
-    auto reporter = [&stats](const usrv::session_stats& s) { stats = s; };
+    skye::session_metrics metrics;
+    auto reporter = [&metrics](const skye::session_metrics& m) { metrics = m; };
 
     auto future = co_spawn(
-        ctx.get_executor(), usrv::session(s, handler, reporter),
+        ctx.get_executor(), skye::session(s, handler, reporter),
         asio::use_future);
 
     REQUIRE(ctx.run() > 0);
@@ -153,14 +152,14 @@ TEST_CASE("session", "[session]")
     REQUIRE(future.valid());
     future.get();
 
-    REQUIRE(stats.num_request == 1);
-    REQUIRE(stats.bytes_read == data.size());
+    REQUIRE(metrics.num_request == 1);
+    REQUIRE(metrics.bytes_read == data.size());
 
     REQUIRE(s.get_tx().ends_with(body));
     REQUIRE(handler_called == 1);
 }
 
-TEST_CASE("session_error", "[session]")
+TEST_CASE("session_error", "[skye][session]")
 {
     using buffer = std::string;
     using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
@@ -175,22 +174,22 @@ TEST_CASE("session_error", "[session]")
 
     bool handler_called = false;
     auto handler = [&handler_called](
-                       usrv::request req) -> asio::awaitable<usrv::response> {
+                       skye::request req) -> asio::awaitable<skye::response> {
         handler_called = true;
-        co_return usrv::response{http::status::ok, req.version()};
+        co_return skye::response{http::status::ok, req.version()};
     };
 
-    usrv::session_stats stats;
-    auto reporter = [&stats](const usrv::session_stats& s) { stats = s; };
+    skye::session_metrics metrics;
+    auto reporter = [&metrics](const skye::session_metrics& m) { metrics = m; };
 
     auto future =
-        co_spawn(ctx, usrv::session(s, handler, reporter), asio::use_future);
+        co_spawn(ctx, skye::session(s, handler, reporter), asio::use_future);
 
     REQUIRE(ctx.run() > 0);
 
     REQUIRE(future.valid());
     future.get();
 
-    REQUIRE(stats.num_request == 0);
+    REQUIRE(metrics.num_request == 0);
     REQUIRE(!handler_called);
 }

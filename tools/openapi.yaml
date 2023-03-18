@@ -4,8 +4,8 @@ info:
   description: Echo example echo server for the Http Microservice library.
   contact:
     name: GitHub Repo
-    url: https://github.com/luketokheim/httpmicroservice-cpp
-  version: 0.7.0
+    url: https://github.com/luketokheim/skye
+  version: 0.9.0
 servers:
   - url: http://127.0.0.1:8080
     description: Echo server running on the local host

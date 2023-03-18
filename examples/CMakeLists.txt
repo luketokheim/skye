@@ -1,17 +1,14 @@
-add_executable(usrv-echo echo.cpp)
-target_link_libraries(
-    usrv-echo PRIVATE httpmicroservice::httpmicroservice)
+add_executable(skye-echo echo.cpp)
+target_link_libraries(skye-echo PRIVATE skye::skye)
 
-install(TARGETS usrv-echo RUNTIME)
+install(TARGETS skye-echo RUNTIME)
 
-add_executable(usrv-hello hello.cpp)
-target_link_libraries(
-    usrv-hello PRIVATE httpmicroservice::httpmicroservice)
+add_executable(skye-hello hello.cpp)
+target_link_libraries(skye-hello PRIVATE skye::skye)
 
-install(TARGETS usrv-hello RUNTIME)
+install(TARGETS skye-hello RUNTIME)
 
-add_executable(usrv-producer producer.cpp)
-target_link_libraries(
-    usrv-producer PRIVATE httpmicroservice::httpmicroservice)
+add_executable(skye-producer producer.cpp)
+target_link_libraries(skye-producer PRIVATE skye::skye)
 
-install(TARGETS usrv-producer RUNTIME)
+install(TARGETS skye-producer RUNTIME)

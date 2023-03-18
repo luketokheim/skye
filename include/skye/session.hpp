@@ -1,6 +1,6 @@
 #pragma once
 
-#include <httpmicroservice/types.hpp>
+#include <skye/types.hpp>
 
 #include <boost/asio/awaitable.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
@@ -10,7 +10,7 @@
 #include <chrono>
 #include <type_traits>
 
-namespace httpmicroservice {
+namespace skye {
 
 namespace asio = boost::asio;
 
@@ -41,13 +41,13 @@ session(AsyncStream stream, Handler handler, Reporter reporter)
         std::is_invocable_r_v<asio::awaitable<response>, Handler, request>,
         "Handler type requirements not met");
 
-    constexpr bool kEnableStats =
-        std::is_invocable_r_v<void, Reporter, const session_stats&>;
+    constexpr bool kEnableMetrics =
+        std::is_invocable_r_v<void, Reporter, const session_metrics&>;
 
-    session_stats stats;
-    if constexpr (kEnableStats) {
-        stats.fd = stream.native_handle();
-        stats.start_time = std::chrono::steady_clock::now();
+    session_metrics metrics;
+    if constexpr (kEnableMetrics) {
+        metrics.fd = stream.native_handle();
+        metrics.start_time = std::chrono::steady_clock::now();
     }
 
     boost::beast::flat_buffer buffer{kRequestSizeLimit};
@@ -68,8 +68,8 @@ session(AsyncStream stream, Handler handler, Reporter reporter)
                 break;
             }
 
-            if constexpr (kEnableStats) {
-                stats.bytes_read += bytes_read;
+            if constexpr (kEnableMetrics) {
+                metrics.bytes_read += bytes_read;
             }
         }
 
@@ -87,9 +87,9 @@ session(AsyncStream stream, Handler handler, Reporter reporter)
             break;
         }
 
-        if constexpr (kEnableStats) {
-            ++stats.num_request;
-            stats.bytes_write += bytes_write;
+        if constexpr (kEnableMetrics) {
+            ++metrics.num_request;
+            metrics.bytes_write += bytes_write;
         }
 
         if (res.need_eof()) {
@@ -98,10 +98,10 @@ session(AsyncStream stream, Handler handler, Reporter reporter)
         }
     }
 
-    if constexpr (kEnableStats) {
-        stats.end_time = std::chrono::steady_clock::now();
-        reporter(stats);
+    if constexpr (kEnableMetrics) {
+        metrics.end_time = std::chrono::steady_clock::now();
+        std::invoke(reporter, metrics);
     }
 }
 
-} // namespace httpmicroservice
+} // namespace skye

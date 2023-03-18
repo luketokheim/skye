@@ -2,8 +2,8 @@
 # Build on Ubuntu 22.04 LTS (Jammy Jellyfish) with g++ and libstdc++. Link
 # statically so we have a portable binary. Run on scratch.
 #
-# docker build -t httpmicroservice-cpp .
-# docker run --rm -p 8080:8080 httpmicroservice-cpp
+# docker build -t skye -f tools/jammy.dockerfile .
+# docker run --rm -p 8080:8080 skye
 #
 FROM ubuntu:jammy as builder
 
@@ -44,10 +44,10 @@ RUN cmake --install . --strip
 
 FROM scratch as runtime
 
-COPY --from=builder /usr/local/bin/usrv-hello /usrv
+COPY --from=builder /usr/local/bin/skye-hello /skye
 
 ENV PORT=8080
 
-ENTRYPOINT ["/usrv"]
+ENTRYPOINT ["/skye"]
 
 EXPOSE $PORT

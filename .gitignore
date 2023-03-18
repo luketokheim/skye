@@ -2,5 +2,8 @@
 .vs/
 out/
 
-# We use this path for CI and command line cmake
+# The path for CI and command line cmake
 build/
+
+# Conan generated
+CMakeUserPresets.json

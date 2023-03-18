@@ -1,6 +1,6 @@
 #pragma once
 
-#include <httpmicroservice/session.hpp>
+#include <skye/session.hpp>
 
 #include <boost/asio/as_tuple.hpp>
 #include <boost/asio/awaitable.hpp>
@@ -12,9 +12,11 @@
 
 #include <exception>
 
-namespace httpmicroservice {
+namespace skye {
 
 namespace asio = boost::asio;
+
+namespace detail {
 
 /**
   The service connection accept loop. Launch a coroutine for each incoming
@@ -66,6 +68,10 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
 template <typename Handler, typename Reporter>
 asio::awaitable<void> listen(int port, Handler handler, Reporter reporter)
 {
+    // Use a custom completion token for async operations on the acceptor and
+    // its incoming socket connections.
+    // - Always use co_await
+    // - Always return error_code and result as a std::tuple
     using tcp = asio::ip::tcp;
     using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
     using tcp_acceptor = default_token::as_default_on_t<tcp::acceptor>;
@@ -77,6 +83,8 @@ asio::awaitable<void> listen(int port, Handler handler, Reporter reporter)
     co_await accept(
         std::move(acceptor), std::move(handler), std::move(reporter));
 }
+
+} // namespace detail
 
 /**
   Run the server in a coroutine. Convenient to call similar to asio::async_read
@@ -93,7 +101,7 @@ void async_run(
 {
     // Run coroutine to listen on our port
     co_spawn(
-        ctx, listen(port, std::move(handler), std::move(reporter)),
+        ctx, detail::listen(port, std::move(handler), std::move(reporter)),
         [](auto ptr) {
             // Propagate exception from the coroutine
             if (ptr) {
@@ -132,17 +140,16 @@ void run(int port, Handler handler, Reporter reporter = {})
 
 /**
   Wrap a HTTP request handler in its own coroutine. Intended for use with a
-  different ExecutionContext not running in the main I/O thread. This is a
-  mechanism to use asio::thread_pool to run the handlers outside main service
-  event loop I/O thread.
+  second ExecutionContext not running in the main I/O thread. This is the
+  mechanism to use asio::thread_pool to run the handlers separately from the
+  main server event loop.
  */
 template <typename ExecutionContext, typename Handler>
 auto make_co_handler(ExecutionContext& ctx, Handler handler)
 {
-    return [ex = ctx.get_executor(),
-            handler](request req) -> asio::awaitable<response> {
-        co_return co_await co_spawn(
-            ex, handler(std::move(req)), asio::use_awaitable);
+    auto ex = ctx.get_executor();
+    return [=](request req) -> asio::awaitable<response> {
+        return co_spawn(ex, handler(std::move(req)), asio::use_awaitable);
     };
 }
 
@@ -155,4 +162,4 @@ auto make_co_handler(ExecutionContext& ctx, Handler handler)
  */
 int getenv_port();
 
-} // namespace httpmicroservice
+} // namespace skye

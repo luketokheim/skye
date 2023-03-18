@@ -10,14 +10,27 @@
 
 #include <chrono>
 
-namespace httpmicroservice {
+namespace skye {
 
+/**
+  Use Boost.Beast types directly in the public library interface. Allow the
+  user to do simple things easily while still offering access to more advanced
+  functionality.
+ */
 namespace http = boost::beast::http;
 
 /**
-  Rationale: We intend to create callable microservices that will receive
-  binary, image, or JSON data in the body of the request. Make it simple to
-  read the entire body as a std::string.
+  The library is used to create web services call functions via HTTP requests.
+  The function inputs may arrive as parameters in the URL, as header values, or
+  in the body of the request.
+
+  The library treats the request body as binary data. The user must decode or
+  interpret the body in their handler function. For example, the request may
+  contain an image or JSON buffer but the library does not validate or parse
+  the inputs before calling the user handler.
+
+  Use `http::string_body` to make it simple for users to read the entire body as
+  a `std::string`.
  */
 using request = http::request<http::string_body>;
 
@@ -40,13 +53,13 @@ using response = http::response<http::string_body>;
   aggregate data from one session loop. The reporter function object is called
   once per session.
  */
-struct session_stats {
-    int fd{0};
-    int num_request{0};
-    int bytes_read{0};
-    int bytes_write{0};
+struct session_metrics {
+    int fd{};
+    int num_request{};
+    int bytes_read{};
+    int bytes_write{};
     std::chrono::steady_clock::time_point start_time{};
     std::chrono::steady_clock::time_point end_time{};
 };
 
-} // namespace httpmicroservice
+} // namespace skye
