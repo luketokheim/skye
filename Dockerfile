@@ -2,8 +2,8 @@
 # Build on Alpine with g++ and musl/libc. Link statically for a portable binary.
 # Run on scratch.
 #
-# docker build -t httpmicroservice-cpp .
-# docker run --rm -p 8080:8080 httpmicroservice-cpp
+# docker build -t skye .
+# docker run --rm -p 8080:8080 skye
 #
 FROM alpine:3.17 as builder
 
@@ -45,10 +45,10 @@ RUN cmake --install . --strip
 
 FROM scratch as runtime
 
-COPY --from=builder /usr/local/bin/usrv-hello /usrv
+COPY --from=builder /usr/local/bin/skye-hello /skye
 
 ENV PORT=8080
 
-ENTRYPOINT ["/usrv"]
+ENTRYPOINT ["/skye"]
 
 EXPOSE $PORT

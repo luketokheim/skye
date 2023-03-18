@@ -1,5 +1,5 @@
-#include <httpmicroservice/format.hpp>
-#include <httpmicroservice/service.hpp>
+#include <skye/format.hpp>
+#include <skye/service.hpp>
 
 #include <boost/asio/signal_set.hpp>
 #include <boost/asio/thread_pool.hpp>
@@ -12,10 +12,9 @@
 
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
-namespace usrv = httpmicroservice;
 
 // Runs on the pool executor which runs in its own thread.
-asio::awaitable<usrv::response> producer(usrv::request req)
+asio::awaitable<skye::response> producer(skye::request req)
 {
     using namespace std::chrono_literals;
 
@@ -26,7 +25,7 @@ asio::awaitable<usrv::response> producer(usrv::request req)
     // requests.
     std::this_thread::sleep_for(kSimulatedDelay);
 
-    usrv::response res{http::status::ok, req.version()};
+    skye::response res{http::status::ok, req.version()};
     res.set(http::field::content_type, "application/json");
     res.body() = "{\"hello\": \"producer\"}";
 
@@ -35,15 +34,15 @@ asio::awaitable<usrv::response> producer(usrv::request req)
 
 // Print aggregate session stats to stdout. Called once per socket connection
 // which likely includes multiple HTTP requests.
-void reporter(const usrv::session_stats& stats)
+void reporter(const skye::session_metrics& metrics)
 {
-    fmt::print("{}\n", stats);
+    fmt::print("{}\n", metrics);
 }
 
 int main()
 {
     try {
-        const int port = usrv::getenv_port();
+        const int port = skye::getenv_port();
 
         asio::io_context ioc;
 
@@ -56,8 +55,8 @@ int main()
         // some blocking operation. Not tested in your specific app and you may
         // find that the single threaded option performs better at the cost of
         // blocking the event loop.
-        usrv::async_run(
-            ioc, port, usrv::make_co_handler(pool, producer), reporter);
+        skye::async_run(
+            ioc, port, skye::make_co_handler(pool, producer), reporter);
 
         // SIGTERM is sent by Docker to ask us to stop (politely)
         // SIGINT handles local Ctrl+C in a terminal
