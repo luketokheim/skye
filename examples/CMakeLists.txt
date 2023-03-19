@@ -1,3 +1,11 @@
+find_package(SQLite3 CONFIG)
+if(SQLite3_FOUND)
+    add_executable(skye-database database.cpp)
+    target_link_libraries(skye-database PRIVATE skye::skye SQLite::SQLite3)
+
+    install(TARGETS skye-database RUNTIME)
+endif()
+
 add_executable(skye-echo echo.cpp)
 target_link_libraries(skye-echo PRIVATE skye::skye)
 
