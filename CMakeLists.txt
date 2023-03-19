@@ -9,16 +9,20 @@ target_compile_features(skye PUBLIC cxx_std_20)
 target_include_directories(skye PUBLIC include)
 
 # g++-10 or newer on Linux
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     find_package(Threads)
     target_compile_options(skye PUBLIC -fcoroutines)
     target_link_libraries(skye PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 # clang++-13 or newer on Linux
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(skye PUBLIC -stdlib=libc++)
     target_link_options(skye PUBLIC -stdlib=libc++)
+endif()
+
+if(WIN32)
+    target_compile_definitions(skye PUBLIC _WIN32_WINNT=0x0A00)
 endif()
 
 find_package(Boost 1.79 REQUIRED CONFIG)
