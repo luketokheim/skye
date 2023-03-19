@@ -1,16 +1,28 @@
-# Http Microservice for C++
+# Skye
 
 [![sanitizer](https://github.com/luketokheim/skye/actions/workflows/sanitizer.yaml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/sanitizer.yaml)
 [![test](https://github.com/luketokheim/skye/actions/workflows/test.yaml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/test.yaml)
 [![tidy](https://github.com/luketokheim/skye/actions/workflows/tidy.yaml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/tidy.yaml)
 
-Run your C++ function as a containerized web service.
+Skye is an HTTP microservice framework for C++20. Build resource friendly, cloud-native applications.
 
-## Quick Start
+The framework is an example use case of the excellent [Asio](https://think-async.com/Asio/) and
+[Boost.Beast](https://github.com/boostorg/beast) libraries. Out of the box you get:
+
+- HTTP/1
+- Asynchronous model
+- Performance
+
+## Quick start
 
 A minimal service needs a request handler.
 
 ```cpp
+#include <skye/service.hpp>
+
+namespace asio = boost::asio;
+namespace http = boost::beast::http;
+
 asio::awaitable<skye::response> hello_world(skye::request req)
 {
     skye::response res{http::status::ok, req.version()};
@@ -24,11 +36,6 @@ asio::awaitable<skye::response> hello_world(skye::request req)
 And a main function.
 
 ```cpp
-#include <skye/service.hpp>
-
-namespace asio = boost::asio;
-namespace http = boost::beast::http;
-
 int main()
 {
     // Listen on port 8080 and route all HTTP requests to the hello_world handler
@@ -39,8 +46,12 @@ int main()
 ```
 
 Asio has excellent docs. Refer to those for more details on
-[Basic Asio Anatomy](https://think-async.com/Asio/asio-1.24.0/doc/asio/overview/basics.html)
-and [C++20 Coroutines Support](https://think-async.com/Asio/asio-1.24.0/doc/asio/overview/composition/cpp20_coroutines.html).
+[Basic Asio Anatomy](https://think-async.com/Asio/asio-1.26.0/doc/asio/overview/basics.html)
+and [C++20 Coroutines Support](https://think-async.com/Asio/asio-1.26.0/doc/asio/overview/composition/cpp20_coroutines.html).
+
+The framework uses [Boost.Beast](https://www.boost.org/doc/libs/release/libs/beast/doc/html/index.html)
+types directly in its public interface. The intent is to allow users to do simple things easily
+while still offering access to more advanced functionality.
 
 ## Docker
 
@@ -61,29 +72,29 @@ single binary [Hello World](examples/hello.cpp) example server.
 
 ## Design
 
-The basic idea is that you use this library to run your C++ function in response
+The basic idea is that you use this library to call your C++ function in response
 to an HTTP request. The library provides the server functionality and handles the
 networking and protocol aspects for you.
 
 The service runs one thread for all network I/O. For blocking or long running
 synchronous tasks inside your C++ function your may want to provide a worker
-thread pool to keep the main event loop running and processing other requests.
+thread (or pool) to keep the main event loop running and processing other requests.
 
-This service is intended to run behind a reverse proxy that terminates TLS and
-maps requests to this application. I am using it on Google Cloud Run but other
-containerized environments will work.
+The service is intended to run behind a reverse proxy that terminates TLS and
+maps requests to this application. The framework was prototyped on Google Cloud
+Run but other container environments will work.
 
-Since this service assumes it is running behind a reverse proxy there are some
-features that I omitted.
+Since the service assumes it is running behind a reverse proxy there are some
+features that were omitted.
 
 - No SSL/TLS support
 - No request or keep alive timeouts
 - No request target resource to handler mapping
 - No static content or nice error pages
 
-## Async
+## Asynchronous model
 
-The server uses only asynchronous operations. If you have used Asio before then
+The framework uses only asynchronous operations. If you have used Asio before then
 this main function will look more familiar.
 
 ```cpp
@@ -101,7 +112,26 @@ int main()
 }
 ```
 
-Most of my usage is with a single thread calling io_context::run().
+By default, the framework calls `io_context::run()` from a single thread.
+
+Request handlers run in a coroutine and may initiate their own asynchronous 
+operations. Here is an example with a timer.
+
+```cpp
+asio::awaitable<skye::response> handler(skye::request req)
+{
+    auto ex = co_await asio::this_coro::executor;
+
+    // Wait for 0.25 seconds without blocking other async operations.
+    asio::steady_timer timer{ex, 250ms};
+    co_await timer.async_wait(asio::use_awaitable);
+    
+    co_return skye::response{http::status::no_content, req.version()};
+}
+```
+
+Boost has recently added client libraries for [MySQL](https://github.com/boostorg/mysql)
+and [Redis](https://github.com/boostorg/redis) that support this asynchronous model.
 
 ## Requirements
 
@@ -115,28 +145,18 @@ Kohlhoff.
 - [Boost.Beast](https://github.com/boostorg/beast) to parse HTTP requests and form responses
 - [Catch2](https://github.com/catchorg/Catch2) to run tests for continuous integration
 
-For production use I recommend using io_uring (liburing-dev) on Linux if
-available. It is enabled by default with the ENABLE_IO_URING CMake option if
-liburing is found. The Docker and Continuous Deployment (CD) builds do not
+For production use I recommend using io_uring (liburing-dev) on Linux if available. Enable it with
+the `ENABLE_IO_URING` CMake option. The Docker and Continuous Deployment (CD) builds do not
 install that library to maximize compatibility.
 
 Cloud Run [second generation](https://cloud.google.com/run/docs/about-execution-environments)
 execution environment supports io_uring but the managed container runtimes on
 AWS (App Runner) and Azure (Container Apps) do not.
 
-## Compilers
+## Package manager
 
-This project requires C++20 support for coroutines. It runs on Windows, macOS,
-and Linux.
-
-- Microsoft Visual Studio 2022
-- Clang 13
-- G++ 10
-
-## Package managers
-
-This project uses the [conan](https://conan.io/) C++ package manager to build
-for Continuous Integration (CI) and its Docker images.
+This project uses the [Conan](https://conan.io/) C++ package manager for Continuous Integration
+(CI) and to build Docker images.
 
 ## Build
 
@@ -160,3 +180,12 @@ Run tests.
 ```console
 ctest -C Release
 ```
+
+## Compilers
+
+This project requires C++20 support for coroutines. It runs on Windows, macOS,
+and Linux.
+
+- Microsoft Visual Studio 2022
+- Clang 13
+- G++ 10
