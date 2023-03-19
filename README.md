@@ -12,6 +12,7 @@ The framework is an example use case of the excellent [Asio](https://think-async
 - HTTP/1
 - Asynchronous model
 - Performance
+- Small footprint
 
 ## Quick start
 
@@ -131,7 +132,7 @@ asio::awaitable<skye::response> handler(skye::request req)
 ```
 
 Boost has recently added client libraries for [MySQL](https://github.com/boostorg/mysql)
-and [Redis](https://github.com/boostorg/redis) that support this asynchronous model.
+and [Redis](https://github.com/boostorg/redis) that support the asynchronous model.
 
 ## Requirements
 
@@ -189,3 +190,26 @@ and Linux.
 - Microsoft Visual Studio 2022
 - Clang 13
 - G++ 10
+
+## Why?
+
+Why make another HTTP server library? Why should I use it?
+
+The project started as an internal example or template for how to set up a Beast web service
+that uses C++20 coroutines. Beast is a low-level framework with excellent features and options.
+I did my best to choose the most appropriate and performant of those options for a cloud based web
+service.
+
+As the project developed I became envious of web frameworks in other languages like
+Go `net/http` and Rust `hyper`. I tried to incorporate the simplicity of the usage of those
+libraries into the interface to Skye.
+
+You should use this framework if you:
+
+- Want a server that cooperates with other Asio libraries.
+- Want to use C++ to develop a container app that you deploy to the cloud.
+
+Do not use this framework to:
+
+- Make a general purpose web server or serve files. Use nginx!
+- Make a public facing web server on the internet. No TLS, no timeouts, HTTP/1 only.
