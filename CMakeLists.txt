@@ -25,10 +25,13 @@ if(WIN32)
     target_compile_definitions(skye PUBLIC _WIN32_WINNT=0x0A00)
 endif()
 
-find_package(Boost 1.79 REQUIRED CONFIG)
-find_package(fmt 9.0 REQUIRED CONFIG)
+find_package(Boost 1.79 REQUIRED)
+target_link_libraries(skye PUBLIC Boost::boost)
 
-target_link_libraries(skye PUBLIC Boost::boost fmt::fmt)
+find_package(fmt 9.0 QUIET)
+if(fmt_FOUND)
+    target_link_libraries(skye PUBLIC fmt::fmt)
+endif()
 
 option(
     ENABLE_STANDALONE
