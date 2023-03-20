@@ -152,7 +152,7 @@ std::optional<Model> SQLiteContext::getRandomModel()
         (sqlite3_column_count(stmt) == kNumColumn) &&
         (sqlite3_column_type(stmt, 0) == SQLITE_INTEGER) &&
         (sqlite3_column_type(stmt, 1) == SQLITE_INTEGER)) {
-        model.emplace(sqlite3_column_int(stmt, 0), sqlite3_column_int(stmt, 1));
+        model = {sqlite3_column_int(stmt, 0), sqlite3_column_int(stmt, 1)};
     }
 
     if (sqlite3_reset(stmt) != SQLITE_OK) {

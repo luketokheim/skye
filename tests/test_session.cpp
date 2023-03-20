@@ -1,11 +1,10 @@
-#include <catch2/catch_test_macros.hpp>
-
 #include <skye/session.hpp>
 
 #include "mock_sock.hpp"
 #include "test.hpp"
 
 #include <boost/asio/co_spawn.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <vector>
 
