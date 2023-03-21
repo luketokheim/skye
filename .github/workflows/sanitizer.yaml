@@ -28,46 +28,43 @@ jobs:
 
     - name: Install package manager
       run: >
-        pipx install conan==1.59.0
-        && conan profile new default --detect
-        && conan profile update settings.build_type=Debug default
-        && conan profile update settings.compiler.libcxx=libc++ default
+        pipx install conan
+        && conan profile detect
 
     - name: Install dependencies
       #
       # Download packages listed in our manifest. Generate toolchain file for
       # CMake so that we can use find_package(...) to find deps
       #
-      run: conan install . --install-folder=build --build=missing
+      run: >
+        conan install .
+        --build=missing
+        -s build_type=Debug
+        -s compiler.libcxx=libc++
 
     - name: Configure
       #
       # Configure CMake in the "build" subdirectory.
       #
-      working-directory: build
+      working-directory: build/Debug
       run: >
-        cmake .. -GNinja
+        cmake ../.. -GNinja
         -DCMAKE_BUILD_TYPE=Debug
         -DCMAKE_CXX_FLAGS="-fsanitize=${{ matrix.sanitizer }}"
-        -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+        -DCMAKE_TOOLCHAIN_FILE=generators/conan_toolchain.cmake
 
     - name: Build
       #
       # Build all enabled programs with the current configuration.
       #
-      working-directory: build
+      working-directory: build/Debug
       run: cmake --build .
 
     - name: Test
       #
-      # Execute tests defined by the CMake configuration. In our project this
-      # is any executable target that has an associated add_test(NAME target).
+      # Run tests defined by CTest.
       #
-      # Example:
-      #   add_executable(unit_test unit_test.cpp)
-      #   add_test(UnitTestName unit_test)
-      #
-      working-directory: build
+      working-directory: build/Debug
       env:
         ASAN_OPTIONS: detect_leaks=1:color=always
         TSAN_OPTIONS: halt_on_error=1:second_deadlock_stack=1
