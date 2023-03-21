@@ -3,5 +3,6 @@
 !include
 !src
 !tests
+!tools
 !CMakeLists.txt
-!conanfile.txt
+!conanfile.py
