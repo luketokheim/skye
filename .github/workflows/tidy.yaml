@@ -32,7 +32,7 @@ jobs:
       # Download packages listed in our manifest. Generate toolchain file for
       # CMake so that we can use find_package(...) to find deps
       #
-      run: conan install . --build=missing --profile=tools/clang-jammy.profile
+      run: conan install . --build=missing -s compiler.libcxx=libc++
 
     - name: Configure
       #
