@@ -45,7 +45,9 @@ RUN cmake --install . --strip
 
 FROM scratch as runtime
 
-COPY --from=builder /usr/local/bin/skye-hello /skye
+ARG appname=hello
+
+COPY --from=builder /usr/local/bin/skye-${appname} /skye
 
 ENV PORT=8080
 

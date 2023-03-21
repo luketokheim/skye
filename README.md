@@ -4,7 +4,8 @@
 [![test](https://github.com/luketokheim/skye/actions/workflows/test.yaml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/test.yaml)
 [![tidy](https://github.com/luketokheim/skye/actions/workflows/tidy.yaml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/tidy.yaml)
 
-Skye is an HTTP microservice framework for C++20. Build resource friendly, cloud-native applications.
+Skye is an HTTP server framework for C++20. Build resource friendly web services
+for the cloud.
 
 The framework is an example use case of the excellent [Asio](https://think-async.com/Asio/) and
 [Boost.Beast](https://github.com/boostorg/beast) libraries. Out of the box you get:
@@ -207,7 +208,7 @@ libraries into the interface to Skye.
 You should use this framework if you:
 
 - Want a server that cooperates with other Asio libraries.
-- Want to use C++ to develop a container app that you deploy to the cloud.
+- Want to use C++ to create a container app that you deploy to the cloud.
 
 Do not use this framework to:
 

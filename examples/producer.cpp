@@ -1,9 +1,8 @@
-#include <skye/format.hpp>
-#include <skye/service.hpp>
-
 #include <boost/asio/signal_set.hpp>
 #include <boost/asio/thread_pool.hpp>
 #include <fmt/core.h>
+#include <skye/format.hpp>
+#include <skye/service.hpp>
 
 #include <chrono>
 #include <cstdio>
@@ -18,7 +17,7 @@ asio::awaitable<skye::response> producer(skye::request req)
 {
     using namespace std::chrono_literals;
 
-    constexpr auto kSimulatedDelay = 100ms;
+    constexpr auto kSimulatedDelay = 250ms;
 
     // If your handler might take some time and does not support async then
     // you should use your own thread so that the server can keep handling
@@ -32,7 +31,7 @@ asio::awaitable<skye::response> producer(skye::request req)
     co_return res;
 }
 
-// Print aggregate session stats to stdout. Called once per socket connection
+// Print aggregate session metrics to stdout. Called once per socket connection
 // which likely includes multiple HTTP requests.
 void reporter(const skye::session_metrics& metrics)
 {
@@ -44,8 +43,7 @@ int main()
     try {
         const int port = skye::getenv_port();
 
-        asio::io_context ioc;
-
+        asio::io_context ioc{1};
         asio::thread_pool pool{1};
 
         // Two threads. Main thread runs the http service and the I/O to read

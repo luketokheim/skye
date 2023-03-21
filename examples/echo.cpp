@@ -1,18 +1,31 @@
-#include <skye/service.hpp>
-
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <fmt/core.h>
+#include <skye/service.hpp>
 
+#include <algorithm>
 #include <cstdio>
 #include <exception>
 
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
 
+// Returns true iff all chars in string are ASCII
+constexpr bool is_ascii(const auto& str)
+{
+    return std::all_of(str.begin(), str.end(), [](char ch) {
+        return static_cast<unsigned char>(ch) < 128;
+    });
+}
+
 // Handle POST requests, echo back the body contents
 skye::response post(const skye::request& req)
 {
+    // Our echo tranformations do not support Unicode
+    if (!is_ascii(req.body())) {
+        return skye::response{http::status::bad_request, req.version()};
+    }
+
     // Echo the POST request body
     skye::response res{http::status::ok, req.version()};
     res.set(http::field::content_type, "text/plain");
@@ -40,9 +53,8 @@ skye::response get(const skye::request& req)
         return skye::response{http::status::not_found, req.version()};
     }
 
-    // Convert from boost::string_view
+    // Convert from boost::string_view for fmt support
     std::string_view target{req.target().data(), req.target().size()};
-    req.target() = std::string_view{"Hello"};
 
     skye::response res{http::status::ok, req.version()};
     res.set(http::field::content_type, "application/json");
@@ -72,7 +84,7 @@ int main()
     try {
         const int port = skye::getenv_port();
 
-        asio::io_context ioc;
+        asio::io_context ioc{1};
 
         skye::async_run(ioc, port, echo);
 

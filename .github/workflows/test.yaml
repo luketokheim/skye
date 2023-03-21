@@ -2,7 +2,7 @@
 # Workflow for C++ continuous integration (CI) with cmake and conan
 # - Run on pull request and push to main branch
 # - Install dependencies with conan
-# - Use CMake to configure and build
+# - Use conan to call CMake to configure and build
 # - Use CTest to run tests
 #
 name: test
@@ -47,41 +47,25 @@ jobs:
       #   settings.compiler.libcxx=libstdc++
       #
       run: >
-        pipx install conan==1.59.0
-        && conan profile new default --detect
+        pipx install conan
+        && conan profile detect
 
     - name: Install dependencies
       #
       # Download packages listed in our manifest. Generate toolchain file for
       # CMake so that we can use find_package(...) to find deps.
       #
-      run: conan install . --install-folder=build --build=missing
+      run: conan install . --build=missing
       
-    - name: Configure
-      #
-      # Configure CMake in the "build" subdirectory.
-      #
-      working-directory: build
-      run: >
-        cmake ..
-        -DCMAKE_BUILD_TYPE=Release
-        -DCMAKE_TOOLCHAIN_FILE="conan_toolchain.cmake"
-
     - name: Build
       #
-      # Build all enabled programs with the current configuration.
+      # Configure with CMake and build all enabled apps.
       #
-      working-directory: build
-      run: cmake --build . --config=Release
+      run: conan build .
 
     - name: Test
       #
-      # Execute tests defined by the CMake configuration. In our project this
-      # is any executable target that has an associated add_test(NAME target).
+      # Execute tests defined by the CMake configuration.
       #
-      # Example:
-      #   add_executable(unit_test unit_test.cpp)
-      #   add_test(UnitTestName unit_test)
-      #
-      working-directory: build
+      working-directory: build/Release
       run: ctest --output-on-failure --config=Release

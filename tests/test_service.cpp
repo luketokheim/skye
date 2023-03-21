@@ -1,13 +1,12 @@
 #include <skye/service.hpp>
 
-#include <catch2/catch_test_macros.hpp>
-
 #include "test.hpp"
 
 #include <boost/asio.hpp>
 #include <boost/asio/experimental/awaitable_operators.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <chrono>
 #include <future>
