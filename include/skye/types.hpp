@@ -1,10 +1,5 @@
 #pragma once
 
-/// Sets _WIN32_WINNT to the default for current Windows SDK
-#if defined(_WIN32) && !defined(_WIN32_WINNT)
-#include <SDKDDKVer.h>
-#endif
-
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
 
@@ -13,16 +8,16 @@
 namespace skye {
 
 /**
-  Use Boost.Beast types directly in the public library interface. Allow the
-  user to do simple things easily while still offering access to more advanced
-  functionality.
+  The framework uses Boost.Beast types directly in its public interface. The
+  intent is to allow users to do simple things easily while still offering
+  access to more advanced functionality.
  */
 namespace http = boost::beast::http;
 
 /**
-  The library is used to create web services call functions via HTTP requests.
-  The function inputs may arrive as parameters in the URL, as header values, or
-  in the body of the request.
+  The library is used to create web services that call functions via HTTP
+  requests. The function inputs may arrive as parameters in the URL, as header
+  values, or in the body of the request.
 
   The library treats the request body as binary data. The user must decode or
   interpret the body in their handler function. For example, the request may

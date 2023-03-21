@@ -3,7 +3,7 @@
 #include <fmt/core.h>
 
 /**
-  Convert SessionMetrics to a JSON string. Specialize the formatter struct so
+  Convert session_metrics to a JSON string. Specialize the formatter struct so
   session_metrics works with fmt::print.
 
   https://fmt.dev/latest/api.html#formatting-user-defined-types
