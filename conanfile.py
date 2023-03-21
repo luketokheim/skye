@@ -12,18 +12,22 @@ class SkyeRecipe(ConanFile):
     # Binary configuration
     settings = "os", "arch", "compiler", "build_type"
     options = {
+        "enable_standalone": [True, False],
+        "enable_io_uring": [True, False],
         "with_boost": [True, False],
         "with_fmt": [True, False],
         "with_sqlite3": [True, False]
     }
     default_options = {
+        "enable_standalone": False,
+        "enable_io_uring": False,
         "with_boost": True,
         "with_fmt": True,
         "with_sqlite3": False,
         "boost*:header_only": True
     }
 
-    # Sources are located in the same place as this recipe, copy them to the recipe
+    # Copy sources to when building this recipe for the local cache
     exports_sources = "CMakeLists.txt", "examples/*", "include/*", "src/*", "tests/*"
 
     def layout(self):
@@ -49,8 +53,15 @@ class SkyeRecipe(ConanFile):
         deps.generate()
 
     def build(self):
+        variables = dict()
+        if self.options.enable_standalone:
+            variables["ENABLE_STANDALONE"] = True
+
+        if self.options.enable_io_uring:
+            variables["ENABLE_IO_URING"] = True
+
         cmake = CMake(self)
-        cmake.configure()
+        cmake.configure(variables=variables)
         cmake.build()
 
     def package(self):
