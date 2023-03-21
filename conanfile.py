@@ -5,7 +5,7 @@ from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps, cmake_layout
 class SkyeRecipe(ConanFile):
     name = "skye"
     version = "0.9.0-alpha"
-    description = "Skye is an HTTP microservice framework for C++20"
+    description = "Skye is an HTTP server framework for C++20."
     homepage = "https://github.com/luketokheim/skye"
     license = "BSL"
 
@@ -28,7 +28,7 @@ class SkyeRecipe(ConanFile):
     }
 
     # Copy sources to when building this recipe for the local cache
-    exports_sources = "CMakeLists.txt", "examples/*", "include/*", "src/*", "tests/*"
+    exports_sources = "CMakeLists.txt", "include/*", "src/*", "examples/*", "tests/*"
 
     def layout(self):
         cmake_layout(self)
@@ -48,17 +48,18 @@ class SkyeRecipe(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self)
+        # tc.variables["ENABLE_STANDALONE"] = self.options.enable_standalone
+        # tc.variables["ENABLE_IO_URING"] = self.options.enable_io_uring
         tc.generate()
+
         deps = CMakeDeps(self)
         deps.generate()
 
     def build(self):
-        variables = dict()
-        if self.options.enable_standalone:
-            variables["ENABLE_STANDALONE"] = True
-
-        if self.options.enable_io_uring:
-            variables["ENABLE_IO_URING"] = True
+        variables = {
+            "ENABLE_STANDALONE": self.options.enable_standalone,
+            "ENABLE_IO_URING": self.options.enable_io_uring
+        }
 
         cmake = CMake(self)
         cmake.configure(variables=variables)
@@ -68,5 +69,5 @@ class SkyeRecipe(ConanFile):
         cmake = CMake(self)
         cmake.install()
 
-    #def package_info(self):
-    #    self.cpp_info.libs = ["skye"]
+    def package_info(self):
+        self.cpp_info.libs = ["skye"]
