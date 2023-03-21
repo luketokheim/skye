@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.15)
+# Minimum version for target_sources(... FILE_SET HEADERS ...)
+cmake_minimum_required(VERSION 3.23)
 
 project(skye)
 
@@ -43,11 +44,21 @@ if(CMAKE_COMPILER_IS_GNUCXX AND ENABLE_STANDALONE)
     target_link_options(skye PUBLIC -static-libstdc++ -static)
 endif()
 
+target_sources(
+    skye PUBLIC FILE_SET HEADERS
+    BASE_DIRS include
+    FILES
+    include/skye.hpp
+    include/skye/format.hpp
+    include/skye/service.hpp
+    include/skye/session.hpp
+    include/skye/types.hpp)
+
 find_library(URING_LIBRARY uring)
 option(
     ENABLE_IO_URING
     "Enable the io_uring backend on Linux if liburing is found"
-    ON)
+    OFF)
 if(ENABLE_IO_URING AND URING_LIBRARY)
     target_compile_definitions(
         skye
@@ -61,8 +72,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     include(CTest)
     add_subdirectory(examples)
 
-    install(DIRECTORY include DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/")
-    install(TARGETS skye)
+    install(TARGETS skye FILE_SET HEADERS)
 endif()
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
