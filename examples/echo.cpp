@@ -13,8 +13,10 @@ namespace http = boost::beast::http;
 // Returns true iff all chars in string are ASCII
 constexpr bool is_ascii(const auto& str)
 {
+    constexpr unsigned char kNumAscii = 128;
+
     return std::all_of(str.begin(), str.end(), [](char ch) {
-        return static_cast<unsigned char>(ch) < 128;
+        return static_cast<unsigned char>(ch) < kNumAscii;
     });
 }
 
