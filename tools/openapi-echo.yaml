@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Echo Example
-  description: Echo example echo server for the Http Microservice library.
+  title: Echo Server
+  description: Example app for the Skye HTTP server framework.
   contact:
     name: GitHub Repo
     url: https://github.com/luketokheim/skye
