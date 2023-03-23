@@ -165,21 +165,20 @@ This project uses the [Conan](https://conan.io/) C++ package manager for Continu
 Create a build folder and install dependencies with the package manager.
 
 ```console
-conan install . --output-folder=build --build=missing
+conan install . --build=missing
 ```
 
 Use the toolchain file created by the package manager so cmake can locate
 libraries with [find_package](https://cmake.org/cmake/help/latest/command/find_package.html).
 
 ```console
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
-cmake --build . --config=Release
+conan build .
 ```
 
 Run tests.
 
 ```console
+cd build/Release
 ctest -C Release
 ```
 

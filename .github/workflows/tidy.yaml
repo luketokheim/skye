@@ -24,33 +24,32 @@ jobs:
 
     - name: Install package manager
       run: >
-        pipx install conan==1.59.0
-        && conan profile new default --detect
-        && conan profile update settings.compiler.libcxx=libc++ default
+        pipx install conan
+        && conan profile detect
 
     - name: Install dependencies
       #
       # Download packages listed in our manifest. Generate toolchain file for
       # CMake so that we can use find_package(...) to find deps
       #
-      run: conan install . --install-folder=build --build=missing
+      run: conan install . --build=missing -s compiler.libcxx=libc++
 
     - name: Configure
       #
       # Configure CMake in the "build" subdirectory.
       #
-      working-directory: build
+      working-directory: build/Release
       run: >
-        cmake .. -GNinja
+        cmake ../.. -GNinja
         -DCMAKE_BUILD_TYPE=Release
         -DCMAKE_CXX_CLANG_TIDY=clang-tidy-14
         -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-        -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+        -DCMAKE_TOOLCHAIN_FILE=generators/conan_toolchain.cmake
         -DBUILD_TESTING=OFF
 
     - name: Build
       #
       # Build all enabled programs with the current configuration.
       #
-      working-directory: build
+      working-directory: build/Release
       run: cmake --build .
