@@ -30,23 +30,34 @@ namespace http = boost::beast::http;
 using request = http::request<http::string_body>;
 
 /**
-  Rationale: We intend to run a function and return the results in the body of
-  the response. Since the results are all in memory make it simple to write the
-  body with a std::string.
+  The library calls a function and returns the results as an HTTP response. The
+  outputs are the response headers and the body.
+
+  The library treats the response body as binary data. The user must set an
+  appropriate content type header.
+
+  For example, to send a JSON buffer set the `http::field::content_type` header
+  to ""application/json"".
+
+  Use `http::string_body` to make it simple for users to write the entire body
+  as a `std::string`.
  */
 using response = http::response<http::string_body>;
 
 /**
-  Rationale: We want a simple mechanism to get transmit and receive byte counts
-  and other basic metrics for service observability. The logging could be
-  printing to the console or publishing an endpoint for Prometheus based
-  monitoring.
+  A simple mechanism to record byte counts for incoming and outgoing HTTP
+  messages and other basic metrics for service observability. The user supplies
+  a reporting callback and can choosem how to log the metrics.
+
+  The library implements a JSON formatter for the metrics object. A quick start
+  is to just to call fmt::print("{}\n", metrics) to log to stdout.
 
   The session(...) function takes an optional reporter function object. If stats
   collection is enabled at compile time then the metrics are collected in the
-  HTTP session loop. One session_stats object is intended to represent the
-  aggregate data from one session loop. The reporter function object is called
-  once per session.
+  HTTP session loop.
+
+  One session_stats object is intended to represent the aggregate data from one
+  session loop. The reporter function object is called once per session.
  */
 struct session_metrics {
     int fd{};

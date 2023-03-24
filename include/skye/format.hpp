@@ -1,6 +1,10 @@
+#pragma once
+
 #include <skye/types.hpp>
 
 #include <fmt/core.h>
+
+#include <chrono>
 
 /**
   Convert session_metrics to a JSON string. Specialize the formatter struct so
