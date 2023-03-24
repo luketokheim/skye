@@ -1,5 +1,5 @@
-# Minimum version for target_sources(... FILE_SET HEADERS ...)
-cmake_minimum_required(VERSION 3.23)
+# 3.23 for better install target_sources(... FILE_SET HEADERS ...)
+cmake_minimum_required(VERSION 3.15)
 
 project(skye)
 
@@ -44,15 +44,17 @@ if(CMAKE_COMPILER_IS_GNUCXX AND ENABLE_STANDALONE)
     target_link_options(skye PUBLIC -static-libstdc++ -static)
 endif()
 
-target_sources(
-    skye PUBLIC FILE_SET HEADERS
-    BASE_DIRS include
-    FILES
-    include/skye.hpp
-    include/skye/format.hpp
-    include/skye/service.hpp
-    include/skye/session.hpp
-    include/skye/types.hpp)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.23)
+    target_sources(
+        skye PUBLIC FILE_SET HEADERS
+        BASE_DIRS include
+        FILES
+        include/skye.hpp
+        include/skye/format.hpp
+        include/skye/service.hpp
+        include/skye/session.hpp
+        include/skye/types.hpp)
+endif()
 
 find_library(URING_LIBRARY uring)
 option(
@@ -72,7 +74,12 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     include(CTest)
     add_subdirectory(examples)
 
-    install(TARGETS skye FILE_SET HEADERS)
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.23)
+        install(TARGETS skye FILE_SET HEADERS)
+    else()
+        install(TARGETS skye)
+        install(DIRECTORY include DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/")
+    endif()
 endif()
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
