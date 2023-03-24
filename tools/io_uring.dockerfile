@@ -10,7 +10,7 @@
 #
 FROM alpine:3.17 as builder
 
-# Install build requirements from package repo
+# Install build requirements from package repo.
 RUN apk update && apk add --no-cache \
     cmake \
     g++ \
@@ -20,36 +20,33 @@ RUN apk update && apk add --no-cache \
     ninja \
     py-pip
 
-# Install conan package manager
+# Install conan package manager.
 RUN pip install conan && conan profile detect
 
-# Copy repo source code
+# Copy repo source code.
 COPY . /source
 
-# Run cmake commands from the build folder
-WORKDIR /source/build
+# Run cmake commands from the build folder.
+WORKDIR /source
 
-# Download dependencies and generate cmake toolchain file
-RUN conan install .. --output-folder=. --build=missing
+# Populate conan "global.conf" file for standalone builds.
+RUN cat tools/standalone.conf >> ~/.conan2/global.conf
 
-# Configure, build with static musl/libc and libstdc++ so we can run on the
-# scratch empty base image
-RUN cmake .. -GNinja \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake \
-    -DENABLE_STANDALONE=ON \
-    -DENABLE_IO_URING=ON \
-    -DBUILD_TESTING=OFF
+# Download dependencies and generate cmake toolchain file.
+RUN conan install . --build=missing -o with_sqlite3=True
 
-# Build
-RUN cmake --build .
+# Calls cmake. Build with static musl/libc and libstdc++ so the apps run on the
+# scratch empty base image.
+RUN conan build . -o enable_standalone=True -o enable_io_uring=True
 
-# Install
-RUN cmake --install . --strip
+# Install.
+RUN cmake --install build/Release --strip --verbose
 
 FROM scratch as runtime
 
-COPY --from=builder /usr/local/bin/skye-hello /skye
+ARG appname=hello
+
+COPY --from=builder /source/bin/skye-${appname} /skye
 
 ENV PORT=8080
 
