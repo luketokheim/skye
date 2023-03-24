@@ -71,10 +71,8 @@ asio::awaitable<skye::response> echo(skye::request req)
     switch (req.method()) {
     case http::verb::get:
         co_return get(req);
-        break;
     case http::verb::post:
         co_return post(req);
-        break;
     default:
         co_return skye::response{
             http::status::method_not_allowed, req.version()};

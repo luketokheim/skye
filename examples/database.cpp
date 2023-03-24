@@ -15,16 +15,16 @@ namespace http = boost::beast::http;
 
 namespace database {
 
-/** Object we will read from the database. */
+// Object we will read from the database.
 struct Model {
     int id{};
     int randomNumber{};
 };
 
-/** Custom deleter for unique_ptr/shared_ptr to sqlite3 structs. */
+// Custom deleter for unique_ptr/shared_ptr to sqlite3 structs.
 struct SQLiteDeleter {
-    template <typename T>
-    void operator()(T* ptr) const;
+    void operator()(sqlite3* ptr) const;
+    void operator()(sqlite3_stmt* ptr) const;
 };
 
 /** Connection to the database. Use the SQLite C API. */
@@ -33,6 +33,10 @@ public:
     // RAII, requires that the database is open and the statement is prepared.
     explicit SQLiteContext(const std::string& filename);
 
+    // Model not set if:
+    // - No matching row in database
+    // - Column types do not match object
+    // - Error in executing statement
     std::optional<Model> getRandomModel();
 
 private:
@@ -110,7 +114,9 @@ int main()
 
         const int port = skye::getenv_port();
 
+        // One thread for the HTTP server.
         asio::io_context ioc{1};
+        // One thread for the database handler.
         asio::thread_pool pool{1};
 
         skye::async_run(ioc, port, skye::make_co_handler(pool, handler));
@@ -162,13 +168,11 @@ std::optional<Model> SQLiteContext::getRandomModel()
     return model;
 }
 
-template <>
 void SQLiteDeleter::operator()(sqlite3* ptr) const
 {
     sqlite3_close(ptr);
 }
 
-template <>
 void SQLiteDeleter::operator()(sqlite3_stmt* ptr) const
 {
     sqlite3_finalize(ptr);
