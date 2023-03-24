@@ -40,6 +40,12 @@ RUN cmake --install build/Release --strip --verbose
 
 FROM scratch as runtime
 
+#
+# Allow user to choose which example to deploy from command line.
+#
+# docker build -t skye:echo --build-arg echo .
+# docker build -t skye:producer --build-arg producer .
+#
 ARG appname=hello
 
 COPY --from=builder /source/bin/skye-${appname} /skye
