@@ -4,12 +4,12 @@ from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps, cmake_layout
 
 class SkyeRecipe(ConanFile):
     name = "skye"
-    version = "0.9.0-alpha"
+    version = "0.9.0"
     description = "Skye is an HTTP server framework for C++20."
     homepage = "https://github.com/luketokheim/skye"
     license = "BSL"
 
-    # Binary configuration
+    build_policy = "missing"
     settings = "os", "arch", "compiler", "build_type"
     options = {
         "enable_standalone": [True, False],
@@ -26,8 +26,6 @@ class SkyeRecipe(ConanFile):
         "with_sqlite3": False,
         "boost*:header_only": True
     }
-
-    # Copy sources to when building this recipe for the local cache
     exports_sources = "CMakeLists.txt", "include/*", "src/*", "examples/*", "tests/*"
 
     def layout(self):
@@ -48,8 +46,6 @@ class SkyeRecipe(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self)
-        # tc.variables["ENABLE_STANDALONE"] = self.options.enable_standalone
-        # tc.variables["ENABLE_IO_URING"] = self.options.enable_io_uring
         tc.generate()
 
         deps = CMakeDeps(self)
