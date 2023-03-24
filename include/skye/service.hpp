@@ -1,6 +1,7 @@
 #pragma once
 
 #include <skye/session.hpp>
+#include <skye/types.hpp>
 
 #include <boost/asio/as_tuple.hpp>
 #include <boost/asio/awaitable.hpp>
@@ -8,6 +9,7 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/signal_set.hpp>
+#include <boost/asio/this_coro.hpp>
 #include <boost/asio/use_awaitable.hpp>
 
 #include <exception>
@@ -116,14 +118,14 @@ void async_run(
 
   Run event loop "forever" on this thread. Handle signals to stop cleanly.
 
-  Opinionated design for use in Docker container behind load balancer. Listen on
-  port until docker sends a SIGTERM. Single thread, scale service horizontally
-  with more instances.
+  Opinionated design for use in a container behind load balancer. Listen on
+  port until the container runtime sends a SIGTERM signal. Single thread, scale
+  service horizontally with more instances.
 */
 template <typename Handler, typename Reporter = bool>
 void run(int port, Handler handler, Reporter reporter = {})
 {
-    // Concurrency hint to asio that we are single threaded
+    // Concurrency hint to asio that run is single threaded
     asio::io_context ioc{1};
 
     // Listen on port and route all HTTP requests to the handler

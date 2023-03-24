@@ -1,7 +1,9 @@
 #include <skye/service.hpp>
 
 #include <charconv>
+#include <cstdlib>
 #include <string_view>
+#include <system_error>
 
 namespace skye {
 

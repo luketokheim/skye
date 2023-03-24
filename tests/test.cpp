@@ -1,9 +1,11 @@
 #include <skye.hpp>
 
 #include <catch2/catch_test_macros.hpp>
+#include <fmt/core.h>
 
 #include <array>
 #include <cstdlib>
+#include <string>
 
 #if !defined(_WIN32)
 

@@ -8,6 +8,7 @@
 #include <boost/beast/http/write.hpp>
 
 #include <chrono>
+#include <functional>
 #include <type_traits>
 
 namespace skye {
@@ -18,9 +19,9 @@ namespace asio = boost::asio;
 constexpr auto kRequestSizeLimit = 1000 * 1000;
 
 /**
-  The HTTP session loop. In this context, a session is multiple HTTP/1.1
-  requests with implicit keep alive over one TCP socket stream. The requests
-  are serialized one after the other.
+  The HTTP session loop. In the library, a session is multiple HTTP/1.1 requests
+  with implicit keep alive over one TCP socket stream. The requests are
+  serialized one after the other.
 
   loop {
       request = read(stream)
@@ -30,8 +31,8 @@ constexpr auto kRequestSizeLimit = 1000 * 1000;
       write(stream, response)
   }
 
-  If you supply a reporter function object then it is called once after the
-  request loop with the aggregate stats.
+  If the user supplies a reporter function object then that is called once after
+  the request loop with the aggregate metrics.
  */
 template <typename AsyncStream, typename Handler, typename Reporter>
 asio::awaitable<void>
@@ -102,6 +103,8 @@ session(AsyncStream stream, Handler handler, Reporter reporter)
         metrics.end_time = std::chrono::steady_clock::now();
         std::invoke(reporter, metrics);
     }
+
+    co_return;
 }
 
 } // namespace skye
