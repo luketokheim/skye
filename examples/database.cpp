@@ -4,6 +4,7 @@
 #include <boost/asio/thread_pool.hpp>
 #include <fmt/core.h>
 #include <skye/service.hpp>
+#include <skye/utility.hpp>
 
 #include <cstdio>
 #include <exception>
