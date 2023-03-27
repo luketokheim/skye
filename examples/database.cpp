@@ -1,76 +1,16 @@
+#include "database.hpp"
+
 #include <boost/asio/signal_set.hpp>
 #include <boost/asio/thread_pool.hpp>
 #include <fmt/core.h>
 #include <skye/service.hpp>
-#include <sqlite3.h>
 
 #include <cstdio>
 #include <exception>
 #include <memory>
-#include <optional>
-#include <string>
 
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
-
-namespace database {
-
-// Object we will read from the database.
-struct Model {
-    int id{};
-    int randomNumber{};
-};
-
-// Custom deleter for unique_ptr/shared_ptr to sqlite3 structs.
-struct SQLiteDeleter {
-    void operator()(sqlite3* ptr) const;
-    void operator()(sqlite3_stmt* ptr) const;
-};
-
-/** Connection to the database. Use the SQLite C API. */
-class SQLiteContext {
-public:
-    // RAII, requires that the database is open and the statement is prepared.
-    explicit SQLiteContext(const std::string& filename);
-
-    // Model not set if:
-    // - No matching row in database
-    // - Column types do not match object
-    // - Error in executing statement
-    std::optional<Model> getRandomModel();
-
-private:
-    using UniqueConnection = std::unique_ptr<sqlite3, SQLiteDeleter>;
-    using UniqueStatement = std::unique_ptr<sqlite3_stmt, SQLiteDeleter>;
-
-    static UniqueConnection MakeConnection(const std::string& filename);
-    static UniqueStatement MakeStatement(sqlite3* db);
-
-    // Prepared statement depends on the connection.
-    UniqueConnection connection_;
-    UniqueStatement statement_;
-};
-
-} // namespace database
-
-// Use fmt to convert database::Model to a JSON string.
-template <>
-struct fmt::formatter<database::Model> {
-    constexpr auto parse(format_parse_context& ctx)
-    {
-        return ctx.begin();
-    }
-
-    template <typename FormatContext>
-    auto format(const database::Model& model, FormatContext& ctx) const
-    {
-        // The format string "replacement fields" use {}. Escape those
-        // characters with {{ and }}.
-        return fmt::format_to(
-            ctx.out(), "{{\"id\":{},\"randomNumber\":{}}}", model.id,
-            model.randomNumber);
-    }
-};
 
 // Function object with shared database context (that is not copyable).
 struct Handler {
@@ -140,21 +80,30 @@ int main()
 
 namespace database {
 
+constexpr int kMinId = 1;
+constexpr int kMaxId = 10000;
+
 SQLiteContext::SQLiteContext(const std::string& filename)
     : connection_{MakeConnection(filename)}, statement_{MakeStatement(
-                                                 connection_.get())}
+                                                 connection_.get())},
+      engine_{std::random_device{}()}, uniform_dist_{kMinId, kMaxId}
 {
 }
 
 std::optional<Model> SQLiteContext::getRandomModel()
 {
+    constexpr int kNumParam = 1;
     constexpr int kNumColumn = 2;
+
+    const int id = uniform_dist_(engine_);
 
     std::optional<Model> model;
 
     auto* stmt = statement_.get();
 
-    if ((sqlite3_step(stmt) == SQLITE_ROW) &&
+    if ((sqlite3_bind_parameter_count(stmt) == kNumParam) &&
+        (sqlite3_bind_int(stmt, kNumParam, id) == SQLITE_OK) &&
+        (sqlite3_step(stmt) == SQLITE_ROW) &&
         (sqlite3_column_count(stmt) == kNumColumn) &&
         (sqlite3_column_type(stmt, 0) == SQLITE_INTEGER) &&
         (sqlite3_column_type(stmt, 1) == SQLITE_INTEGER)) {
@@ -214,8 +163,7 @@ SQLiteContext::MakeConnection(const std::string& filename)
 
 SQLiteContext::UniqueStatement SQLiteContext::MakeStatement(sqlite3* db)
 {
-    constexpr std::string_view kSql{
-        "SELECT * FROM world ORDER BY RANDOM() LIMIT 1;"};
+    constexpr std::string_view kSql{"SELECT * FROM world WHERE id=?;"};
 
     sqlite3_stmt* ptr = nullptr;
 
