@@ -26,21 +26,20 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Install build tools
+      run: >
+        sudo apt-get update
+        && sudo apt-get install -y ninja-build
+
     - name: Install package manager
       run: >
         pipx install conan
         && conan profile detect
-
-    - name: Install dependencies
-      #
-      # Download packages listed in our manifest. Generate toolchain file for
-      # CMake so that we can use find_package(...) to find deps.
-      #
-      run: conan install . --build=missing
       
     - name: Build
       #
-      # Configure with CMake and build all enabled apps.
+      # Download deps, generate CMake toolchain file to support
+      # find_package(...), configure with CMake, and build all tests.
       #
       run: >
         conan build . --build=missing
