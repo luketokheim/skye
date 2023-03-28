@@ -6,7 +6,7 @@ Ubuntu LTS.
 
 ## Hello World
 
-The example [Hello World](examples/hello.cpp) web service.
+The example [Hello World](../examples/hello.cpp) web service.
 
 - Single server thread
 - Small JSON response `{"hello": "world"}`
@@ -33,7 +33,7 @@ Transfer/sec:     19.57MB
 
 ## Database
 
-The example [Database](examples/database.cpp) web service.
+The example [Database](../examples/database.cpp) web service.
 
 - Two server threads, one for HTTP and one for SQLite database queries
 - Small JSON response `{"id":5249,"randomNumber":9529}`
