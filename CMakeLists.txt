@@ -40,6 +40,8 @@ if(fmt_FOUND)
     target_link_libraries(skye INTERFACE fmt::fmt)
 endif()
 
+option(ENABLE_BENCHMARKS "Build and run benchmarks with testing" OFF)
+
 find_library(URING_LIBRARY uring)
 option(
     ENABLE_IO_URING
@@ -78,4 +80,7 @@ endif()
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     add_subdirectory(examples)
     add_subdirectory(tests)
+    if(ENABLE_BENCHMARKS)
+        add_subdirectory(bench)
+    endif()
 endif()

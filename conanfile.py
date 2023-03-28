@@ -12,8 +12,11 @@ class SkyeRecipe(ConanFile):
     settings = "os", "arch", "compiler", "build_type"
     generators = "CMakeToolchain", "CMakeDeps"
     exports_sources = "CMakeLists.txt", "include/*", "examples/*", "tests/*"
-    options = {"enable_io_uring": [True, False]}
-    default_options = {"enable_io_uring": False}
+    options = {
+        "enable_benchmarks": [True, False],
+        "enable_io_uring": [True, False]
+    }
+    default_options = {"enable_benchmarks": False, "enable_io_uring": False}
 
     def requirements(self):
         self.test_requires("boost/1.81.0", options={"header_only": True})
@@ -24,11 +27,17 @@ class SkyeRecipe(ConanFile):
 
         self.test_requires("catch2/3.3.2")
 
+        if self.options.enable_benchmarks:
+            self.test_requires("benchmark/1.7.1")
+
     def layout(self):
         cmake_layout(self)
 
     def build(self):
-        variables = {"ENABLE_IO_URING": self.options.enable_io_uring}
+        variables = {
+            "ENABLE_BENCHMARKS": self.options.enable_benchmarks,
+            "ENABLE_IO_URING": self.options.enable_io_uring
+        }
 
         cmake = CMake(self)
         cmake.configure(variables=variables)
