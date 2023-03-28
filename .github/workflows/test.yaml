@@ -42,7 +42,9 @@ jobs:
       #
       # Configure with CMake and build all enabled apps.
       #
-      run: conan build .
+      run: >
+        conan build . --build=missing
+        -c tools.cmake.cmaketoolchain:generator=Ninja
 
     - name: Test
       #
