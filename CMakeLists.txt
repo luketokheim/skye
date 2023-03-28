@@ -1,13 +1,19 @@
-# 3.23 for better install target_sources(... FILE_SET HEADERS ...)
+# Required for the conan toolchain generator.
 cmake_minimum_required(VERSION 3.15)
 
 project(skye)
+
+include(GNUInstallDirs)
 
 add_library(skye INTERFACE)
 add_library(skye::skye ALIAS skye)
 
 target_compile_features(skye INTERFACE cxx_std_20)
-target_include_directories(skye INTERFACE include)
+target_include_directories(
+    skye
+    INTERFACE
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 # g++-10 or newer on Linux
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -26,25 +32,12 @@ if(WIN32)
     target_compile_definitions(skye INTERFACE _WIN32_WINNT=0x0A00)
 endif()
 
-find_package(Boost 1.79 REQUIRED)
+find_package(Boost REQUIRED)
 target_link_libraries(skye INTERFACE Boost::boost)
 
-find_package(fmt 9.0 QUIET)
+find_package(fmt QUIET)
 if(fmt_FOUND)
     target_link_libraries(skye INTERFACE fmt::fmt)
-endif()
-
-if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.23)
-    target_sources(
-        skye INTERFACE FILE_SET HEADERS
-        BASE_DIRS include
-        FILES
-        include/skye.hpp
-        include/skye/format.hpp
-        include/skye/service.hpp
-        include/skye/session.hpp
-        include/skye/types.hpp
-        include/skye/utility.hpp)
 endif()
 
 find_library(URING_LIBRARY uring)
@@ -64,12 +57,22 @@ endif()
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     include(CTest)
 
-    if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.23)
-        install(TARGETS skye FILE_SET HEADERS)
-    else()
-        install(TARGETS skye)
-        install(DIRECTORY include DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/")
-    endif()
+    # Install header files.
+    install(
+        DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    
+    # Install example apps export target info.
+    install(
+        TARGETS skye
+        EXPORT skye-targets
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+    # Intall the target file.
+    install(
+        EXPORT skye-targets
+        NAMESPACE skye::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME})
 endif()
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
