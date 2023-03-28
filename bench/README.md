@@ -58,3 +58,10 @@ Running 30s test @ http://localhost:8080/db
 Requests/sec: 192787.75
 Transfer/sec:     18.71MB
 ```
+
+You can generate your own SQLite database file for testing with the
+[sqlite3_schema.py](../tools/sqlite3_schema.py) script.
+
+```console
+python tools/sqlite3_schema.py | sqlite3 database.db
+```
