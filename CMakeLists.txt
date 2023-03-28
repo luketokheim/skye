@@ -40,6 +40,13 @@ if(fmt_FOUND)
     target_link_libraries(skye INTERFACE fmt::fmt)
 endif()
 
+option(ENABLE_ARCH "Build with CPU specific instructions" OFF)
+if(ENABLE_ARCH)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        target_compile_options(skye INTERFACE -march=skylake)
+    endif()
+endif()
+
 option(ENABLE_BENCHMARKS "Build and run benchmarks with testing" OFF)
 
 find_library(URING_LIBRARY uring)

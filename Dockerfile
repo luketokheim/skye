@@ -28,15 +28,11 @@ WORKDIR /source
 # Populate conan "global.conf" file for standalone builds.
 RUN cat tools/standalone.conf >> ~/.conan2/global.conf
 
-# Download dependencies and generate cmake toolchain file.
-RUN conan install . --build=missing -o with_sqlite3=True
-
-# Calls cmake. Build with static musl/libc and libstdc++ so the apps run on the
-# scratch empty base image.
+# Download dependencies, generate cmake toolchain file, and build example apps.
 RUN conan build . -o enable_standalone=True
 
 # Install.
-RUN cmake --install build/Release --strip --verbose
+RUN cmake --install build/Release --strip
 
 FROM scratch as runtime
 

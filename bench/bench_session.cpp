@@ -244,4 +244,4 @@ void BM_Session_Post(benchmark::State& state)
     }
 }
 
-BENCHMARK(BM_Session_Post)->Range(1 << 8, 1 << 16);
+BENCHMARK(BM_Session_Post)->Range(1 << 8, 1 << 20);
