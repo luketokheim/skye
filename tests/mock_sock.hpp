@@ -28,7 +28,7 @@ public:
 
     explicit mock_sock(executor_type ex)
         : ex_{ex}, rx_{std::make_shared<Buffer>()},
-          tx_{std::make_shared<Buffer>()}
+          tx_{std::make_shared<Buffer>()}, rx_offset_{}
     {
     }
 
@@ -36,12 +36,19 @@ public:
     auto
     async_read_some(const MutableBufferSequence& buffers, ReadToken&& token)
     {
-        const auto n =
-            boost::asio::buffer_copy(buffers, boost::asio::buffer(*rx_));
+        if (rx_offset_ >= rx_->size()) {
+            return token(boost::asio::error::eof, 0);
+        }
+
+        const auto n = boost::asio::buffer_copy(
+            buffers,
+            boost::asio::buffer(&(*rx_)[rx_offset_], rx_->size() - rx_offset_));
 
         boost::system::error_code ec;
         if (n == 0) {
             ec = boost::asio::error::eof;
+        } else {
+            rx_offset_ += n;
         }
 
         return token(ec, n);
@@ -51,14 +58,16 @@ public:
     auto
     async_write_some(const ConstBufferSequence& buffers, WriteToken&& token)
     {
-        *tx_ = Buffer(boost::asio::buffer_size(buffers), 0);
+        Buffer buf(boost::asio::buffer_size(buffers), 0);
 
         const auto n =
-            boost::asio::buffer_copy(boost::asio::buffer(*tx_), buffers);
+            boost::asio::buffer_copy(boost::asio::buffer(buf), buffers);
 
         boost::system::error_code ec;
         if (n == 0) {
             ec = boost::asio::error::eof;
+        } else {
+            tx_->insert(tx_->end(), buf.begin(), buf.end());
         }
 
         return token(ec, n);
@@ -100,6 +109,7 @@ private:
     executor_type ex_;
     std::shared_ptr<Buffer> rx_;
     std::shared_ptr<Buffer> tx_;
+    std::size_t rx_offset_;
 }; // class mock_sock
 
 } // namespace test
