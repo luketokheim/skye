@@ -71,13 +71,13 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
         DIRECTORY ${PROJECT_SOURCE_DIR}/include/
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
     
-    # Install example apps export target info.
+    # Install example apps and export target info.
     install(
         TARGETS skye
         EXPORT skye-targets
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-    # Intall the target file.
+    # Install the target file.
     install(
         EXPORT skye-targets
         NAMESPACE skye::
