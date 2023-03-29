@@ -157,12 +157,13 @@ AWS (App Runner) and Azure (Container Apps) do not.
 
 ## Package manager
 
-This project uses the [Conan](https://conan.io/) C++ package manager for Continuous Integration
-(CI) and to build Docker images.
+This project uses the [Conan](https://conan.io/) C++ package manager for
+Continuous Integration (CI) and to build Docker images.
 
 ## Build
 
-Create a build folder and install dependencies with the package manager.
+The library is header only. To build examples and tests, create a build folder
+and install dependencies with the package manager.
 
 ```console
 conan install . --build=missing

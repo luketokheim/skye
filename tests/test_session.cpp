@@ -142,14 +142,11 @@ TEST_CASE("session_ok", "[skye][session]")
     skye::session_metrics metrics;
     auto reporter = [&metrics](const skye::session_metrics& m) { metrics = m; };
 
-    auto future = co_spawn(
+    co_spawn(
         ctx.get_executor(), skye::session(s, handler, reporter),
-        asio::use_future);
+        [](auto ptr) { REQUIRE(!ptr); });
 
     REQUIRE(ctx.run() > 0);
-
-    REQUIRE(future.valid());
-    future.get();
 
     REQUIRE(metrics.num_request == 1);
     REQUIRE(metrics.bytes_read == data.size());
@@ -181,14 +178,54 @@ TEST_CASE("session_error", "[skye][session]")
     skye::session_metrics metrics;
     auto reporter = [&metrics](const skye::session_metrics& m) { metrics = m; };
 
-    auto future =
-        co_spawn(ctx, skye::session(s, handler, reporter), asio::use_future);
+    co_spawn(ctx, skye::session(s, handler, reporter), [](auto ptr) {
+        REQUIRE(!ptr);
+    });
 
     REQUIRE(ctx.run() > 0);
 
-    REQUIRE(future.valid());
-    future.get();
+    REQUIRE(metrics.num_request == 0);
+    REQUIRE(!handler_called);
+}
 
+TEST_CASE("session_error_post", "[skye][session]")
+{
+    using buffer = std::string;
+    using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
+    using tcp_socket = default_token::as_default_on_t<
+        test::mock_sock<buffer, asio::io_context::executor_type>>;
+
+    asio::io_context ctx;
+    tcp_socket s(ctx.get_executor());
+    {
+        const buffer body = test::make_random_string<buffer>(1024 * 1024 + 1);
+        const buffer data = "POST / HTTP/1.0\r\n"
+                            "Content-Type: application/octet-stream\r\n"
+                            "Content-Length: " +
+                            std::to_string(body.size()) + "\r\n\r\n" + body;
+        s.set_rx(data);
+    }
+
+    bool handler_called = false;
+    auto handler = [&](skye::request req) -> asio::awaitable<skye::response> {
+        handler_called = true;
+        co_return skye::response{http::status::ok, req.version()};
+    };
+
+    bool reporter_called = false;
+    skye::session_metrics metrics;
+    auto reporter = [&](const skye::session_metrics& m) {
+        reporter_called = true;
+        metrics = m;
+    };
+
+    co_spawn(ctx, skye::session(s, handler, reporter), [](auto ptr) {
+        REQUIRE(!ptr);
+    });
+
+    REQUIRE(ctx.run() > 0);
+
+    REQUIRE(reporter_called);
     REQUIRE(metrics.num_request == 0);
     REQUIRE(!handler_called);
 }

@@ -14,12 +14,10 @@ asio::awaitable<skye::response> hello(skye::request req)
 
 int main()
 {
-    // Listen on 8080 or PORT env var.
-    const int port = skye::getenv_port();
-
-    // Listen on port and route all HTTP requests to hello. Installs a signal
-    // handler for SIGINT and SIGTERM to cleanly stop the server.
-    skye::run(port, hello);
+    // Listen on port 8080 and route all HTTP requests to the hello handler.
+    // - Server and hello handler all run in main thread
+    // - SIGINT and SIGTERM cleanly stop the server
+    skye::run(8080, hello);
 
     return 0;
 }

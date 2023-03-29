@@ -26,24 +26,17 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install package manager
+    - name: Install tools
       run: >
-        pipx install conan
+        pipx install ninja
+        && pipx install conan
         && conan profile detect
 
-    - name: Install dependencies
-      #
-      # Download packages listed in our manifest. Generate toolchain file for
-      # CMake so that we can use find_package(...) to find deps.
-      #
-      run: conan install . --build=missing
-      
     - name: Build
-      #
-      # Configure with CMake and build all enabled apps.
-      #
-      run: conan build .
-
+      run: >
+        conan build . --build=missing
+        -c tools.cmake.cmaketoolchain:generator=Ninja
+ 
     - name: Test
       #
       # Run tests defined by CTest.

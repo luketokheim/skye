@@ -2,6 +2,7 @@
 #include <boost/asio/signal_set.hpp>
 #include <fmt/core.h>
 #include <skye/service.hpp>
+#include <skye/utility.hpp>
 
 #include <algorithm>
 #include <cstdio>

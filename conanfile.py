@@ -1,59 +1,47 @@
 from conan import ConanFile
-from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps, cmake_layout
+from conan.tools.cmake import CMake, cmake_layout
 
 
 class SkyeRecipe(ConanFile):
     name = "skye"
-    version = "0.9.0"
+    version = "0.10.0"
     description = "Skye is an HTTP server framework for C++20."
     homepage = "https://github.com/luketokheim/skye"
     license = "BSL"
 
-    build_policy = "missing"
     settings = "os", "arch", "compiler", "build_type"
+    generators = "CMakeToolchain", "CMakeDeps"
+    exports_sources = "CMakeLists.txt", "include/*", "examples/*", "tests/*"
     options = {
-        "enable_standalone": [True, False],
-        "enable_io_uring": [True, False],
-        "with_boost": [True, False],
-        "with_fmt": [True, False],
-        "with_sqlite3": [True, False]
+        "enable_arch": [True, False],
+        "enable_benchmarks": [True, False],
+        "enable_io_uring": [True, False]
     }
     default_options = {
-        "enable_standalone": False,
-        "enable_io_uring": False,
-        "with_boost": True,
-        "with_fmt": True,
-        "with_sqlite3": False,
-        "boost*:header_only": True
+        "enable_arch": False,
+        "enable_benchmarks": False,
+        "enable_io_uring": False
     }
-    exports_sources = "CMakeLists.txt", "include/*", "src/*", "examples/*", "tests/*"
+
+    def requirements(self):
+        self.test_requires("boost/1.81.0", options={"header_only": True})
+
+        self.test_requires("fmt/9.1.0")
+
+        self.test_requires("sqlite3/3.41.1")
+
+        self.test_requires("catch2/3.3.2")
+
+        if self.options.enable_benchmarks:
+            self.test_requires("benchmark/1.7.1")
 
     def layout(self):
         cmake_layout(self)
 
-    def requirements(self):
-        if self.options.with_boost:
-            self.requires("boost/1.81.0")
-
-        if self.options.with_fmt:
-            self.requires("fmt/9.1.0")
-
-        if self.options.with_sqlite3:
-            self.requires("sqlite3/3.41.1")
-
-        if not self.conf.get("tools.build:skip_test", default=False):
-            self.requires("catch2/3.3.2")
-
-    def generate(self):
-        tc = CMakeToolchain(self)
-        tc.generate()
-
-        deps = CMakeDeps(self)
-        deps.generate()
-
     def build(self):
         variables = {
-            "ENABLE_STANDALONE": self.options.enable_standalone,
+            "ENABLE_ARCH": self.options.enable_arch,
+            "ENABLE_BENCHMARKS": self.options.enable_benchmarks,
             "ENABLE_IO_URING": self.options.enable_io_uring
         }
 
@@ -64,6 +52,3 @@ class SkyeRecipe(ConanFile):
     def package(self):
         cmake = CMake(self)
         cmake.install()
-
-    def package_info(self):
-        self.cpp_info.libs = ["skye"]
