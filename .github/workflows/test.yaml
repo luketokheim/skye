@@ -28,7 +28,8 @@ jobs:
 
     - name: Install package manager
       run: >
-        pipx install conan ninja
+        pipx install ninja
+        && pipx install conan
         && conan profile detect
 
     - name: Build
