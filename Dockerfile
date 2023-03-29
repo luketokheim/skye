@@ -28,8 +28,8 @@ WORKDIR /source
 # Populate conan "global.conf" file for standalone builds.
 RUN cat tools/standalone.conf >> ~/.conan2/global.conf
 
-# Download dependencies, generate cmake toolchain file, and build example apps.
-RUN conan build . -o enable_standalone=True
+# Download dependencies and build example apps.
+RUN conan build . --build=missing
 
 # Install.
 RUN cmake --install build/Release --strip

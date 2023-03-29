@@ -2,16 +2,15 @@ from conan import ConanFile
 from conan.tools.cmake import CMake, cmake_layout
 
 
-class SkyeRecipe(ConanFile):
+class SkyeConan(ConanFile):
     name = "skye"
-    version = "0.10.0"
     description = "Skye is an HTTP server framework for C++20."
     homepage = "https://github.com/luketokheim/skye"
-    license = "BSL"
+    license = "BSL-1.0"
 
     settings = "os", "arch", "compiler", "build_type"
     generators = "CMakeToolchain", "CMakeDeps"
-    exports_sources = "CMakeLists.txt", "include/*", "examples/*", "tests/*"
+    exports_sources = "CMakeLists.txt", "include/*", "examples/*", "tests/*", "bench/*"
     options = {
         "enable_arch": [True, False],
         "enable_benchmarks": [True, False],
