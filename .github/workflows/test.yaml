@@ -26,7 +26,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install package manager
+    - name: Install tools
       run: >
         pipx install ninja
         && pipx install conan

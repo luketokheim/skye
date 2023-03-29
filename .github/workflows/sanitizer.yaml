@@ -21,14 +21,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install build tools
+    - name: Install tools
       run: >
-        sudo apt-get update
-        && sudo apt-get install -y clang-14 ninja-build
-
-    - name: Install package manager
-      run: >
-        pipx install conan
+        pipx install ninja
+        && pipx install conan
         && conan profile detect
 
     - name: Install dependencies
@@ -37,10 +33,10 @@ jobs:
       # CMake so that we can use find_package(...) to find deps
       #
       run: >
-        conan install .
-        --build=missing
+        conan install . --build=missing
         -s build_type=Debug
         -s compiler.libcxx=libc++
+        -c tools.cmake.cmaketoolchain:generator=Ninja
 
     - name: Configure
       #
