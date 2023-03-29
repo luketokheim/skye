@@ -6,4 +6,8 @@ out/
 build/
 
 # Conan generated
+CMakeSettings.json
 CMakeUserPresets.json
+
+# Example app database
+database.db
