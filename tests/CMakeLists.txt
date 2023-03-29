@@ -1,4 +1,4 @@
-find_package(Catch2 3.1.0 REQUIRED)
+find_package(Catch2 REQUIRED)
 
 add_executable(skye-test test.cpp test_service.cpp test_session.cpp)
 

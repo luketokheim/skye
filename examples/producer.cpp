@@ -3,6 +3,7 @@
 #include <fmt/core.h>
 #include <skye/format.hpp>
 #include <skye/service.hpp>
+#include <skye/utility.hpp>
 
 #include <chrono>
 #include <cstdio>

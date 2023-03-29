@@ -155,13 +155,4 @@ auto make_co_handler(ExecutionContext& ctx, Handler handler)
     };
 }
 
-/**
-  Read the PORT environment variable. Returns 8080 if the PORT variable is not
-  set or is not an integer between 1024 and 65535.
-
-  Cloud Run sets the PORT environment variable.
-  https://cloud.google.com/run/docs/container-contract#port
- */
-int getenv_port();
-
 } // namespace skye

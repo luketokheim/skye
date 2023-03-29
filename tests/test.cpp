@@ -9,7 +9,7 @@
 
 #if !defined(_WIN32)
 
-TEST_CASE("getenv_port", "[skye]")
+TEST_CASE("getenv_port", "[skye][utility]")
 {
     // Do not run this one on Windows because environment vars work completely
     // differently. SetEnvironmentVariable does not update the vars that we read
@@ -51,7 +51,7 @@ TEST_CASE("getenv_port", "[skye]")
 
 #endif // _WIN32
 
-TEST_CASE("format", "[skye]")
+TEST_CASE("session_metrics", "[skye][format]")
 {
     skye::session_metrics metrics;
 
