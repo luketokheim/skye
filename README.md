@@ -1,8 +1,6 @@
 # Skye
 
-[![sanitizer](https://github.com/luketokheim/skye/actions/workflows/sanitizer.yaml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/sanitizer.yaml)
-[![test](https://github.com/luketokheim/skye/actions/workflows/test.yaml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/test.yaml)
-[![tidy](https://github.com/luketokheim/skye/actions/workflows/tidy.yaml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/tidy.yaml)
+[![Continuous Integration](https://github.com/luketokheim/skye/actions/workflows/ci.yml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/ci.yml)
 
 Skye is an HTTP server framework for C++20. Build resource friendly web services
 for the cloud.
