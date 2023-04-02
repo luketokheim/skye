@@ -13,7 +13,8 @@
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
 
-// Function object with shared database context (that is not copyable).
+// Function object with shared database connection. Each HTTP connection gets
+// a copy of this function object.
 struct Handler {
     std::shared_ptr<database::SQLiteContext> ctx;
 
@@ -65,7 +66,7 @@ int main()
         // SIGTERM is sent by Docker to ask us to stop (politely)
         // SIGINT handles local Ctrl+C in a terminal
         asio::signal_set signals{ioc, SIGINT, SIGTERM};
-        signals.async_wait([&ioc](auto ec, auto sig) { ioc.stop(); });
+        signals.async_wait([&ioc](auto /*ec*/, auto /*sig*/) { ioc.stop(); });
 
         ioc.run();
 
@@ -168,8 +169,8 @@ SQLiteContext::UniqueStatement SQLiteContext::MakeStatement(sqlite3* db)
 
     sqlite3_stmt* ptr = nullptr;
 
-    const int ec =
-        sqlite3_prepare_v2(db, kSql.data(), kSql.size(), &ptr, nullptr);
+    const int ec = sqlite3_prepare_v2(
+        db, kSql.data(), static_cast<int>(kSql.size()), &ptr, nullptr);
 
     UniqueStatement instance{ptr};
 

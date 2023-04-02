@@ -165,6 +165,8 @@ Continuous Integration (CI) and to build Docker images.
 The library is header only. To build examples and tests, create a build folder
 and install dependencies with the package manager.
 
+See the [BUILDING](BUILDING.md) document.
+
 ```console
 conan install . --build=missing
 ```
@@ -189,8 +191,8 @@ This project requires C++20 support for coroutines. It runs on Windows, macOS,
 and Linux.
 
 - Microsoft Visual Studio 2022
-- Clang 13
-- G++ 10
+- Clang 14
+- G++ 11
 
 ## Why?
 
@@ -214,3 +216,7 @@ Do not use this framework to:
 
 - Make a general purpose web server or serve files. Use nginx!
 - Make a public facing web server on the internet. No TLS, no timeouts, HTTP/1 only.
+
+## Contributing
+
+See the [CONTRIBUTING](CONTRIBUTING.md) document.

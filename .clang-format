@@ -17,13 +17,13 @@ FixNamespaceComments: true
 IncludeBlocks: Preserve
 IncludeCategories:
   # Public project include files
-  - Regex:    '<skye/?[[:alpha:]_]*.hpp>'
+  - Regex:    '^<skye/[[:alpha:]_]+\.hpp>'
     Priority: 2
   # C++ Standard Library
-  - Regex:    '<[[:alpha:]_]+>'
+  - Regex:    '^<[[:alpha:]_]+>'
     Priority: 3
   # C Standard Library
-  - Regex:    '<[[:alnum:].]+>'
+  - Regex:    '^<[[:alnum:].]+>'
     Priority: 4
   # Everything else, third party library headers
   - Regex:    '.*'

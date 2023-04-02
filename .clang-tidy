@@ -1,3 +1,67 @@
-Checks: '-*,clang-analyzer-*,-clang-analyzer-cplusplus*,cppcoreguidelines-*'
-WarningsAsErrors: '*'
-HeaderFilterRegex: '.*'
+---
+# Configure clang-tidy for this project.
+
+# Here are motivations for why some of the checks are disabled:
+#
+#  -modernize-raw-string-literal: Requires R"(embedded "quotes")" instead of
+#       "embedded \"quotes\"", both are acceptable.
+#
+#  -modernize-return-braced-init-list: Removing typenames and using only
+#       braced-init can hurt readability.
+#
+#  -modernize-use-trailing-return-type: clang-tidy recommends using
+#      `auto Foo() -> std::string { return ...; }`, we think the code is less
+#      readable in this form.
+#
+#  -readability-identifier-length: C++ Core Guidelines "ES.7: Keep common and
+#      local names short, and keep uncommon and non-local names longer." Short
+#      names increase readability if they follow a project convention.
+#
+#  -readability-magic-numbers: In tests and examples a magic number can be
+#      clearer and more readable than a named constant.
+#
+Checks: >
+  -*,
+  abseil-*,
+  bugprone-*,
+  google-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  -modernize-raw-string-literal,
+  -modernize-return-braced-init-list,
+  -modernize-use-trailing-return-type,
+  -readability-identifier-length,
+  -readability-magic-numbers
+
+# Turn all the warnings from the checks above into errors.
+WarningsAsErrors: "*"
+
+HeaderFilterRegex: "<skye/.*\\.hpp>$"
+
+CheckOptions:
+  - { key: readability-identifier-naming.NamespaceCase,          value: lower_case }
+  - { key: readability-identifier-naming.ClassCase,              value: CamelCase  }
+  - { key: readability-identifier-naming.StructCase,             value: CamelCase  }
+  - { key: readability-identifier-naming.TemplateParameterCase,  value: CamelCase  }
+  - { key: readability-identifier-naming.FunctionCase,           value: aNy_CasE  }
+  - { key: readability-identifier-naming.VariableCase,           value: lower_case }
+  - { key: readability-identifier-naming.ClassMemberCase,        value: lower_case }
+  - { key: readability-identifier-naming.ClassMemberSuffix,      value: _          }
+  - { key: readability-identifier-naming.PrivateMemberSuffix,    value: _          }
+  - { key: readability-identifier-naming.ProtectedMemberSuffix,  value: _          }
+  - { key: readability-identifier-naming.EnumConstantCase,         value: CamelCase }
+  - { key: readability-identifier-naming.EnumConstantPrefix,       value: k         }
+  - { key: readability-identifier-naming.ConstexprVariableCase,    value: CamelCase }
+  - { key: readability-identifier-naming.ConstexprVariablePrefix,  value: k         }
+  - { key: readability-identifier-naming.GlobalConstantCase,       value: CamelCase }
+  - { key: readability-identifier-naming.GlobalConstantPrefix,     value: k         }
+  - { key: readability-identifier-naming.MemberConstantCase,       value: CamelCase }
+  - { key: readability-identifier-naming.MemberConstantPrefix,     value: k         }
+  - { key: readability-identifier-naming.StaticConstantCase,       value: CamelCase }
+  - { key: readability-identifier-naming.StaticConstantPrefix,     value: k         }
+  - { key: readability-identifier-naming.TypeTemplateParameterIgnoredRegexp, value: expr-type }
+  - { key: readability-function-cognitive-complexity.IgnoreMacros, value: 1 }
+  - { key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic, value: 1 }

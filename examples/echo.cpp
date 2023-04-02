@@ -11,7 +11,7 @@
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
 
-// Returns true iff all chars in string are ASCII
+// Returns true if all chars in string are ASCII
 constexpr bool is_ascii(const auto& str)
 {
     constexpr unsigned char kNumAscii = 128;
@@ -24,7 +24,7 @@ constexpr bool is_ascii(const auto& str)
 // Handle POST requests, echo back the body contents
 skye::response post(const skye::request& req)
 {
-    // Our echo tranformations do not support Unicode
+    // Echo transformations only work on ASCII
     if (!is_ascii(req.body())) {
         return skye::response{http::status::bad_request, req.version()};
     }
@@ -34,7 +34,7 @@ skye::response post(const skye::request& req)
     res.set(http::field::content_type, "text/plain");
     res.body() = req.body();
 
-    // Apply tranformations based on the target
+    // Apply transformations based on the target
     if (req.target() == "/reverse") {
         std::reverse(res.body().begin(), res.body().end());
     } else if (req.target() == "/uppercase") {
@@ -92,7 +92,7 @@ int main()
         // SIGTERM is sent by Docker to ask us to stop (politely)
         // SIGINT handles local Ctrl+C in a terminal
         asio::signal_set signals{ioc, SIGINT, SIGTERM};
-        signals.async_wait([&ioc](auto ec, auto sig) { ioc.stop(); });
+        signals.async_wait([&ioc](auto /*ec*/, auto /*sig*/) { ioc.stop(); });
 
         ioc.run();
 

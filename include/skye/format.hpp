@@ -25,14 +25,14 @@
   std::string str = fmt::format("{}", metrics);
  */
 template <>
-struct fmt::formatter<skye::session_metrics> {
-    constexpr auto parse(format_parse_context& ctx)
+struct fmt::formatter<skye::SessionMetrics> {
+    constexpr static auto parse(format_parse_context& ctx)
     {
         return ctx.begin();
     }
 
     template <typename FormatContext>
-    auto format(const skye::session_metrics& m, FormatContext& ctx) const
+    auto format(const skye::SessionMetrics& m, FormatContext& ctx) const
     {
         return fmt::format_to(
             ctx.out(),

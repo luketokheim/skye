@@ -1,12 +1,22 @@
 # Visual Studio
 .vs/
+.vscode/
 out/
 
-# The path for CI and command line cmake
-build/
+# CLion
+.idea/
 
-# Conan generated
-CMakeSettings.json
+# The paths for CI and command line cmake
+build/
+cmake-build-*/
+conan/
+prefix/
+
+# Oopsie macOS
+**/.DS_Store
+
+# Do not check in
+CMakeLists.txt.user
 CMakeUserPresets.json
 
 # Example app database

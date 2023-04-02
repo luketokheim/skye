@@ -43,11 +43,11 @@ session(AsyncStream stream, Handler handler, Reporter reporter)
         "Handler type requirements not met");
 
     constexpr bool kEnableMetrics =
-        std::is_invocable_r_v<void, Reporter, const session_metrics&>;
+        std::is_invocable_r_v<void, Reporter, const SessionMetrics&>;
 
-    session_metrics metrics;
+    SessionMetrics metrics;
     if constexpr (kEnableMetrics) {
-        metrics.fd = stream.native_handle();
+        metrics.fd = static_cast<int>(stream.native_handle());
         metrics.start_time = std::chrono::steady_clock::now();
     }
 
@@ -70,7 +70,7 @@ session(AsyncStream stream, Handler handler, Reporter reporter)
             }
 
             if constexpr (kEnableMetrics) {
-                metrics.bytes_read += bytes_read;
+                metrics.bytes_read += static_cast<int>(bytes_read);
             }
         }
 
@@ -90,7 +90,7 @@ session(AsyncStream stream, Handler handler, Reporter reporter)
 
         if constexpr (kEnableMetrics) {
             ++metrics.num_request;
-            metrics.bytes_write += bytes_write;
+            metrics.bytes_write += static_cast<int>(bytes_write);
         }
 
         if (res.need_eof()) {

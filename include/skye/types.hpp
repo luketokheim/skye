@@ -59,7 +59,7 @@ using response = http::response<http::string_body>;
   One session_stats object is intended to represent the aggregate data from one
   session loop. The reporter function object is called once per session.
  */
-struct session_metrics {
+struct SessionMetrics {
     int fd{};
     int num_request{};
     int bytes_read{};

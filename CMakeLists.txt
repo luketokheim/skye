@@ -1,54 +1,50 @@
-# Required for the conan toolchain generator.
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.14)
 
-project(skye)
+include(cmake/prelude.cmake)
 
-include(GNUInstallDirs)
-
-add_library(skye INTERFACE)
-add_library(skye::skye ALIAS skye)
-
-target_compile_features(skye INTERFACE cxx_std_20)
-target_include_directories(
+project(
     skye
+    VERSION 0.10.0
+    DESCRIPTION "Skye is an HTTP server framework for C++20"
+    HOMEPAGE_URL "https://github.com/luketokheim/skye"
+    LANGUAGES CXX
+)
+
+include(cmake/project-is-top-level.cmake)
+include(cmake/variables.cmake)
+
+# ---- Declare library ----
+
+add_library(skye_skye INTERFACE)
+add_library(skye::skye ALIAS skye_skye)
+
+set_property(
+    TARGET skye_skye PROPERTY
+    EXPORT_NAME skye
+)
+
+target_include_directories(
+    skye_skye ${warning_guard}
     INTERFACE
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+)
 
-# g++-10 or newer on Linux
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    find_package(Threads)
-    target_compile_options(skye INTERFACE -fcoroutines)
-    target_link_libraries(skye INTERFACE ${CMAKE_THREAD_LIBS_INIT})
-endif()
+target_compile_features(skye_skye INTERFACE cxx_std_20)
 
-# clang++-13 or newer on Linux
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(skye INTERFACE -stdlib=libc++)
-    target_link_options(skye INTERFACE -stdlib=libc++)
-endif()
-
+# Target Windows 10 SDK from asio
 if(WIN32)
-    target_compile_definitions(skye INTERFACE _WIN32_WINNT=0x0A00)
+    target_compile_definitions(skye_skye INTERFACE _WIN32_WINNT=0x0A00)
 endif()
 
 find_package(Boost REQUIRED)
-target_link_libraries(skye INTERFACE Boost::boost)
+target_link_libraries(skye_skye INTERFACE Boost::boost)
 
 find_package(fmt QUIET)
 if(fmt_FOUND)
-    target_link_libraries(skye INTERFACE fmt::fmt)
+    target_link_libraries(skye_skye INTERFACE fmt::fmt)
 endif()
 
-option(ENABLE_ARCH "Build with CPU specific instructions" OFF)
-if(ENABLE_ARCH)
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        target_compile_options(skye INTERFACE -march=skylake)
-    endif()
-endif()
-
-option(ENABLE_BENCHMARKS "Build and run benchmarks with testing" OFF)
-
+# Use io_uring on Linux. Requires liburing-dev package and kernel support.
 find_library(URING_LIBRARY uring)
 option(
     ENABLE_IO_URING
@@ -56,38 +52,34 @@ option(
     OFF)
 if(ENABLE_IO_URING AND URING_LIBRARY)
     target_compile_definitions(
-        skye
+        skye_skye
         INTERFACE
         BOOST_ASIO_HAS_IO_URING
         BOOST_ASIO_DISABLE_EPOLL)
-    target_link_libraries(skye INTERFACE uring)
+    target_link_libraries(skye_skye INTERFACE uring)
 endif()
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-    include(CTest)
-
-    # Install header files.
-    install(
-        DIRECTORY ${PROJECT_SOURCE_DIR}/include/
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-    
-    # Install example apps and export target info.
-    install(
-        TARGETS skye
-        EXPORT skye-targets
-        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
-    # Install the target file.
-    install(
-        EXPORT skye-targets
-        NAMESPACE skye::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME})
+# Enable AVX2 vectorization for Linux x64. Faster buffer copies!
+option(ENABLE_ARCH "Build with Skylake CPU specific instructions" OFF)
+if(ENABLE_ARCH)
+    target_compile_options(skye_skye INTERFACE -march=skylake)
 endif()
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
-    add_subdirectory(examples)
-    add_subdirectory(tests)
-    if(ENABLE_BENCHMARKS)
-        add_subdirectory(bench)
-    endif()
+# ---- Install rules ----
+
+if(NOT CMAKE_SKIP_INSTALL_RULES)
+    include(cmake/install-rules.cmake)
 endif()
+
+# ---- Developer mode ----
+
+if(NOT skye_DEVELOPER_MODE)
+    return()
+elseif(NOT PROJECT_IS_TOP_LEVEL)
+    message(
+        AUTHOR_WARNING
+        "Developer mode is intended for developers of skye"
+    )
+endif()
+
+include(cmake/dev-mode.cmake)

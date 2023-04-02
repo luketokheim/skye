@@ -7,9 +7,9 @@
 #include <random>
 #include <sstream>
 
-skye::session_metrics make_random_metrics()
+skye::SessionMetrics make_random_metrics()
 {
-    const static skye::session_metrics m = []() {
+    const static skye::SessionMetrics kMetrics = []() {
         std::mt19937 engine(std::random_device{}());
         std::uniform_int_distribution<int> dist{1, 1 << 16};
 
@@ -17,11 +17,11 @@ skye::session_metrics make_random_metrics()
         const auto end_time =
             start_time + std::chrono::milliseconds{dist(engine)};
 
-        return skye::session_metrics{dist(engine), dist(engine), dist(engine),
-                                     dist(engine), start_time,   end_time};
+        return skye::SessionMetrics{dist(engine), dist(engine), dist(engine),
+                                    dist(engine), start_time,   end_time};
     }();
 
-    return m;
+    return kMetrics;
 }
 
 void BM_Format_Json_Fmt(benchmark::State& state)
@@ -79,7 +79,7 @@ void BM_Format_Json_Boost_Convert(benchmark::State& state)
 
 BENCHMARK(BM_Format_Json_Boost_Convert);
 
-std::ostream& operator<<(std::ostream& out, const skye::session_metrics& m)
+std::ostream& operator<<(std::ostream& out, const skye::SessionMetrics& m)
 {
     out << "{\"fd\":" << m.fd << ",\"num_request\":" << m.num_request
         << ",\"bytes_read\":" << m.bytes_read

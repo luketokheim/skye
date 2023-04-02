@@ -20,12 +20,13 @@ void BM_Session_Get(benchmark::State& state)
     using buffer = std::string;
     using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
     using tcp_socket = default_token::as_default_on_t<
-        test::mock_sock<buffer, asio::io_context::executor_type>>;
+        test::MockSock<buffer, asio::io_context::executor_type>>;
 
     constexpr auto kContentType = "text/plain";
 
     const buffer data = "GET / HTTP/1.1\r\n\r\n";
-    const buffer body = test::make_random_string<buffer>(state.range(0));
+    const auto body = test::make_random_string<buffer>(
+        static_cast<std::size_t>(state.range(0)));
 
     const auto handler =
         [&body](skye::request req) -> asio::awaitable<skye::response> {
@@ -71,9 +72,9 @@ session_parser(AsyncStream stream, Handler handler, Reporter reporter)
         "Handler type requirements not met");
 
     constexpr bool kEnableMetrics =
-        std::is_invocable_r_v<void, Reporter, const session_metrics&>;
+        std::is_invocable_r_v<void, Reporter, const SessionMetrics&>;
 
-    session_metrics metrics;
+    SessionMetrics metrics;
     if constexpr (kEnableMetrics) {
         metrics.fd = stream.native_handle();
         metrics.start_time = std::chrono::steady_clock::now();
@@ -112,7 +113,6 @@ session_parser(AsyncStream stream, Handler handler, Reporter reporter)
         res.keep_alive(keep_alive);
 
         // write(res)
-        // http::response_serializer<http::string_body> ser{res};
         auto [ec, bytes_write] = co_await http::async_write(stream, res);
 
         if (ec) {
@@ -144,17 +144,18 @@ session_parser(AsyncStream stream, Handler handler, Reporter reporter)
 //
 // Reponds with N random characters.
 //
-void BM_Session_Get_Parser(benchmark::State& state)
+void BM_Session_Parser_Get(benchmark::State& state)
 {
     using buffer = std::string;
     using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
     using tcp_socket = default_token::as_default_on_t<
-        test::mock_sock<buffer, asio::io_context::executor_type>>;
+        test::MockSock<buffer, asio::io_context::executor_type>>;
 
     constexpr auto kContentType = "text/plain";
 
     const buffer data = "GET / HTTP/1.1\r\n\r\n";
-    const buffer body = test::make_random_string<buffer>(state.range(0));
+    const auto body = test::make_random_string<buffer>(
+        static_cast<std::size_t>(state.range(0)));
 
     const auto handler =
         [&body](skye::request req) -> asio::awaitable<skye::response> {
@@ -188,7 +189,7 @@ void BM_Session_Get_Parser(benchmark::State& state)
     }
 }
 
-BENCHMARK(BM_Session_Get_Parser)->Range(1 << 8, 1 << 20);
+BENCHMARK(BM_Session_Parser_Get)->Range(1 << 8, 1 << 20);
 
 // Post / HTTP/1.1
 //
@@ -202,12 +203,13 @@ void BM_Session_Post(benchmark::State& state)
     using buffer = std::string;
     using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
     using tcp_socket = default_token::as_default_on_t<
-        test::mock_sock<buffer, asio::io_context::executor_type>>;
+        test::MockSock<buffer, asio::io_context::executor_type>>;
 
     constexpr auto kContentType = "text/plain";
     constexpr auto kBody = "Yes,I got your message!";
 
-    const buffer body = test::make_random_string<buffer>(state.range(0));
+    const auto body = test::make_random_string<buffer>(
+        static_cast<std::size_t>(state.range(0)));
     const buffer data = "POST / HTTP/1.1\r\n"
                         "Content-Type: text/plain\r\n"
                         "Content-Length: " +

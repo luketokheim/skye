@@ -34,7 +34,7 @@ asio::awaitable<skye::response> producer(skye::request req)
 
 // Print aggregate session metrics to stdout. Called once per socket connection
 // which likely includes multiple HTTP requests.
-void reporter(const skye::session_metrics& metrics)
+void reporter(const skye::SessionMetrics& metrics)
 {
     fmt::print("{}\n", metrics);
 }
@@ -60,7 +60,7 @@ int main()
         // SIGTERM is sent by Docker to ask us to stop (politely)
         // SIGINT handles local Ctrl+C in a terminal
         asio::signal_set signals{ioc, SIGINT, SIGTERM};
-        signals.async_wait([&ioc](auto ec, auto sig) { ioc.stop(); });
+        signals.async_wait([&ioc](auto /*ec*/, auto /*sig*/) { ioc.stop(); });
 
         ioc.run();
 
