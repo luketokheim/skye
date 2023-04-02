@@ -142,5 +142,5 @@ jobs:
       run: cmake --install build --config Release --prefix prefix
 
     - name: Test
-      working-directory: Release
+      working-directory: build
       run: ctest --output-on-failure --no-tests=error -C Release -j 2
