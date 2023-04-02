@@ -21,6 +21,7 @@ target_link_libraries(
     skye-hello PRIVATE
     skye::skye
 )
+install(TARGETS skye-hello RUNTIME COMPONENT skyeExamples_Runtime)
 
 # Echo and Producer examples require fmt
 if(fmt_FOUND)
@@ -30,6 +31,7 @@ if(fmt_FOUND)
         skye::skye
         fmt::fmt
     )
+    install(TARGETS skye-echo RUNTIME COMPONENT skyeExamples_Runtime)
 
     add_executable(skye-producer producer.cpp)
     target_link_libraries(
@@ -37,6 +39,7 @@ if(fmt_FOUND)
         skye::skye
         fmt::fmt
     )
+    install(TARGETS skye-producer RUNTIME COMPONENT skyeExamples_Runtime)
 endif()
 
 # Database example requires fmt and sqlite3
@@ -48,6 +51,7 @@ if(fmt_FOUND AND SQLite3_FOUND)
         fmt::fmt
         SQLite::SQLite3
     )
+    install(TARGETS skye-database RUNTIME COMPONENT skyeExamples_Runtime)
 endif()
 
 # ---- End-of-file commands ----

@@ -2,7 +2,21 @@
 
 ## Dependencies
 
-For a list of dependencies, please refer to [conanfile.py](conanfile.py).
+### Boost (>=1.79)
+
+Skye requires [Boost](https://www.boost.org/) and intends to support any
+installation method that works with
+[FindBoost](https://cmake.org/cmake/help/latest/module/FindBoost.html). This
+library uses the header only modules Boost.Asio and Boost.Beast.
+
+### fmt (>=9.0 optional)
+
+Skye uses the [fmt](https://fmt.dev/) library in some examples and in the
+[skye/format.hpp](include/skye/format.hpp) header.
+
+### Test, examples, and benchmarks
+
+For a list of dependencies, refer to [conanfile.py](conanfile.py).
 
 ## Build
 
@@ -13,7 +27,7 @@ Here are the steps for building in release mode with a single-configuration
 generator, like the Unix Makefiles one:
 
 ```sh
-cmake -S . -B build -D CMAKE_BUILD_TYPE=Release
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
