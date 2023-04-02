@@ -32,7 +32,7 @@ RUN cat tools/standalone.conf >> ~/.conan2/global.conf
 RUN conan build . --build=missing -o developer_mode=True
 
 # Install.
-RUN cmake --install build/Release --prefix prefix --strip
+RUN cmake --install build/Release --prefix build/install --strip
 
 FROM scratch as runtime
 
@@ -44,7 +44,7 @@ FROM scratch as runtime
 #
 ARG appname=hello
 
-COPY --from=builder /source/prefix/bin/skye-${appname} /skye
+COPY --from=builder /source/build/install/bin/skye-${appname} /skye
 
 ENV PORT=8080
 

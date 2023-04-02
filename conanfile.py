@@ -44,7 +44,6 @@ class SkyeConan(ConanFile):
 
     def layout(self):
         cmake_layout(self)
-        self.folders.generators = "conan"
 
     def build(self):
         variables = dict()
