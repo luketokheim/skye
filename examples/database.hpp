@@ -53,7 +53,7 @@ private:
 // Use fmt to convert database::Model to a JSON string.
 template <>
 struct fmt::formatter<database::Model> {
-    constexpr auto parse(format_parse_context& ctx)
+    constexpr static auto parse(format_parse_context& ctx)
     {
         return ctx.begin();
     }

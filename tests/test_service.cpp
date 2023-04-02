@@ -40,7 +40,7 @@ TEST_CASE("async_run", "[skye][service]")
         co_return res;
     };
 
-    auto reporter = [](const skye::session_metrics& metrics) {
+    auto reporter = [](const skye::SessionMetrics& metrics) {
         REQUIRE(metrics.fd > 0);
 
         if (metrics.num_request > 0) {
@@ -64,7 +64,7 @@ TEST_CASE("async_run", "[skye][service]")
     // Run a HTTP client in its own thread, get http://localhost:8080/
     // https://github.com/boostorg/beast/blob/develop/example/http/client/sync/http_client_sync.cpp
     auto client = std::async(std::launch::async, [req]() {
-        asio::io_context ioc;
+        asio::io_context client_ioc;
 
         const tcp::endpoint endpoint{
             asio::ip::make_address("127.0.0.1"),
@@ -74,7 +74,7 @@ TEST_CASE("async_run", "[skye][service]")
 
         // Just try to connect
         for (int i = 0; i < 5; ++i) {
-            tcp::socket socket(ioc);
+            tcp::socket socket{client_ioc};
             socket.connect(endpoint, ec);
             if (!ec) {
                 break;
@@ -83,7 +83,7 @@ TEST_CASE("async_run", "[skye][service]")
             std::this_thread::sleep_for(100ms);
         }
 
-        boost::beast::tcp_stream stream(ioc);
+        boost::beast::tcp_stream stream(client_ioc);
         stream.expires_after(2s);
         stream.connect(endpoint);
 
@@ -121,7 +121,7 @@ TEST_CASE("make_co_handler", "[skye][service]")
     const auto tid = std::this_thread::get_id();
 
     auto awaitable_handler =
-        [tid](skye::request req) -> asio::awaitable<skye::response> {
+        [tid](skye::request) -> asio::awaitable<skye::response> {
         REQUIRE(tid != std::this_thread::get_id());
 
         throw std::exception{};
@@ -135,8 +135,7 @@ TEST_CASE("make_co_handler", "[skye][service]")
     co_spawn(
         ioc,
         [co_handler]() -> asio::awaitable<void> {
-            skye::request req(skye::http::verb::get, "/", 11);
-            co_await co_handler(req);
+            co_await co_handler(skye::request{skye::http::verb::get, "/", 11});
         },
         [](auto ptr) {
             REQUIRE(ptr);
@@ -151,18 +150,17 @@ TEST_CASE("async_run_functor", "[skye][service]")
     constexpr auto kPort = 8080;
 
     struct Handler {
+        std::shared_ptr<int> ctx;
+
         asio::awaitable<skye::response> operator()(skye::request req) const
         {
             co_return skye::response{http::status::ok, req.version()};
         }
-
-        std::shared_ptr<int> ctx;
     };
 
     // Handler function object. One use case is to include some shared state or
     // context. This could be some other resource handle to DB, etc.
-    Handler handler;
-    handler.ctx = std::make_shared<int>(100);
+    const Handler handler{std::make_shared<int>(100)};
 
     asio::io_context ioc;
 
@@ -198,7 +196,7 @@ TEST_CASE("integration", "[skye][service]")
         co_return skye::response{http::status::ok, req.version()};
     };
 
-    auto reporter = [](const skye::session_metrics& metrics) {
+    auto reporter = [](const skye::SessionMetrics& metrics) {
         REQUIRE(metrics.fd > 0);
 
         if (metrics.num_request > 0) {
@@ -290,7 +288,7 @@ TEST_CASE("integration", "[skye][service]")
     };
 
     auto coro = [&]() -> asio::awaitable<void> {
-        using namespace asio::experimental::awaitable_operators;
+        using asio::experimental::awaitable_operators::operator&&;
 
         co_await (client_partial_read() && client_partial_write());
     };

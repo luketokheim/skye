@@ -1,6 +1,7 @@
 #pragma once
 
-#include <boost/asio.hpp>
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/error.hpp>
 
 #include <memory>
 
@@ -14,27 +15,30 @@ namespace test {
   https://www.boost.org/doc/libs/release/doc/html/boost_asio/reference/AsyncWriteStream.html
  */
 template <typename Buffer, typename Executor>
-class mock_sock {
+class MockSock {
 public:
     using executor_type = Executor;
+    using native_handle_type = int;
 
-    // Need this to specialize default completion handlers for as_tuple_t, etc.
-    template <typename Executor1>
+    // NOLINTBEGIN(readability-identifier-naming)
+    // Used to specialize default completion handlers for as_tuple_t, etc.
+    template <typename OtherExecutor>
     struct rebind_executor {
-        typedef mock_sock<Buffer, Executor1> other;
+        using other = MockSock<Buffer, OtherExecutor>;
     };
 
+    // Shadows tcp::socket_base::shutdown_type
     enum shutdown_type { shutdown_receive, shutdown_send, shutdown_both };
+    // NOLINTEND(readability-identifier-naming)
 
-    explicit mock_sock(executor_type ex)
-        : ex_{ex}, rx_{std::make_shared<Buffer>()},
-          tx_{std::make_shared<Buffer>()}, rx_offset_{}
+    explicit MockSock(executor_type ex)
+        : ex_{std::move(ex)}, rx_{std::make_shared<Buffer>()},
+          tx_{std::make_shared<Buffer>()}
     {
     }
 
-    template <typename MutableBufferSequence, typename ReadToken>
-    auto
-    async_read_some(const MutableBufferSequence& buffers, ReadToken&& token)
+    // NOLINTBEGIN(misc-no-recursion)
+    auto async_read_some(const auto& buffers, auto&& token)
     {
         if (rx_offset_ >= rx_->size()) {
             return token(boost::asio::error::eof, 0);
@@ -54,9 +58,7 @@ public:
         return token(ec, n);
     }
 
-    template <typename ConstBufferSequence, typename WriteToken>
-    auto
-    async_write_some(const ConstBufferSequence& buffers, WriteToken&& token)
+    auto async_write_some(const auto& buffers, auto&& token)
     {
         Buffer buf(boost::asio::buffer_size(buffers), 0);
 
@@ -72,25 +74,24 @@ public:
 
         return token(ec, n);
     }
+    // NOLINTEND(misc-no-recursion)
 
     executor_type get_executor()
     {
         return ex_;
     }
 
-    int native_handle() const
+    [[nodiscard]] native_handle_type native_handle() const
     {
         return 1;
     }
 
-    void shutdown(shutdown_type what, boost::system::error_code& ec)
+    void shutdown(shutdown_type /*what*/, boost::system::error_code& ec)
     {
         ec = boost::system::error_code{};
     }
 
-    template <typename SettableSocketOption>
-    void set_option(
-        const SettableSocketOption& option, boost::system::error_code& ec)
+    void set_option(const auto& /*option*/, boost::system::error_code& ec)
     {
         ec = boost::system::error_code{};
     }
@@ -109,7 +110,7 @@ private:
     executor_type ex_;
     std::shared_ptr<Buffer> rx_;
     std::shared_ptr<Buffer> tx_;
-    std::size_t rx_offset_;
-}; // class mock_sock
+    std::size_t rx_offset_{};
+};
 
 } // namespace test

@@ -14,10 +14,15 @@ asio::awaitable<skye::response> hello(skye::request req)
 
 int main()
 {
-    // Listen on port 8080 and route all HTTP requests to the hello handler.
-    // - Server and hello handler all run in main thread
-    // - SIGINT and SIGTERM cleanly stop the server
-    skye::run(8080, hello);
+    try {
+        // Listen on port 8080 and route all HTTP requests to the hello handler.
+        // - Server and hello handler all run in main thread
+        // - SIGINT and SIGTERM cleanly stop the server
+        skye::run(8080, hello);
 
-    return 0;
+        return 0;
+    } catch (...) {
+    }
+
+    return -1;
 }

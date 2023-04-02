@@ -1,4 +1,5 @@
-#include <skye.hpp>
+#include <skye/format.hpp>
+#include <skye/utility.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 #include <fmt/core.h>
@@ -16,7 +17,7 @@ TEST_CASE("getenv_port", "[skye][utility]")
     // back with std::getenv. This is intended for Docker Linux containers so
     // leave Windows out.
     constexpr auto kName = "PORT";
-    constexpr auto kPort = 8080;
+    constexpr int kPort = 8080;
 
     REQUIRE(unsetenv(kName) == 0);
 
@@ -32,7 +33,7 @@ TEST_CASE("getenv_port", "[skye][utility]")
     constexpr std::array<int, 7> kBadRange = {-10,  0,     80,    443,
                                               1023, 65536, 100000};
 
-    for (int port : kBadRange) {
+    for (const int port : kBadRange) {
         const auto str = std::to_string(port);
         REQUIRE(setenv(kName, str.c_str(), 1) == 0);
 
@@ -42,7 +43,7 @@ TEST_CASE("getenv_port", "[skye][utility]")
     constexpr std::array<const char*, 4> kBadNumber = {
         "-dingo", "3.14 is pi", ".8181.1234", "nope"};
 
-    for (auto str : kBadNumber) {
+    for (const char* str : kBadNumber) {
         REQUIRE(setenv(kName, str, 1) == 0);
 
         REQUIRE(skye::getenv_port() == kPort);
@@ -51,9 +52,9 @@ TEST_CASE("getenv_port", "[skye][utility]")
 
 #endif // _WIN32
 
-TEST_CASE("session_metrics", "[skye][format]")
+TEST_CASE("SessionMetrics", "[skye][format]")
 {
-    skye::session_metrics metrics;
+    skye::SessionMetrics metrics;
 
     const std::string str = fmt::format("{}", metrics);
 

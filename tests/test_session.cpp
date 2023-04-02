@@ -3,7 +3,7 @@
 #include "mock_sock.hpp"
 #include "test.hpp"
 
-#include <boost/asio/co_spawn.hpp>
+#include <boost/asio.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 #include <vector>
@@ -11,10 +11,10 @@
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
 
-TEST_CASE("async_read_some", "[test][mock_sock]")
+TEST_CASE("async_read_some", "[test][MockSock]")
 {
     using buffer = std::vector<char>;
-    using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
+    using tcp_socket = test::MockSock<buffer, asio::io_context::executor_type>;
 
     asio::io_context ctx;
     tcp_socket s{ctx.get_executor()};
@@ -27,7 +27,8 @@ TEST_CASE("async_read_some", "[test][mock_sock]")
 
         buffer buf(n);
 
-        auto handler = [n](auto ec, auto bytes_transferred) {
+        auto handler = [n](boost::system::error_code ec,
+                           std::size_t bytes_transferred) {
             REQUIRE(!ec);
             REQUIRE(n == bytes_transferred);
         };
@@ -38,10 +39,10 @@ TEST_CASE("async_read_some", "[test][mock_sock]")
     }
 }
 
-TEST_CASE("async_read", "[test][mock_sock]")
+TEST_CASE("async_read", "[test][MockSock]")
 {
     using buffer = std::vector<char>;
-    using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
+    using tcp_socket = test::MockSock<buffer, asio::io_context::executor_type>;
 
     asio::io_context ctx;
     tcp_socket s{ctx.get_executor()};
@@ -54,7 +55,8 @@ TEST_CASE("async_read", "[test][mock_sock]")
 
         buffer buf(n);
 
-        auto handler = [n](auto ec, auto bytes_transferred) {
+        auto handler = [n](boost::system::error_code ec,
+                           std::size_t bytes_transferred) {
             REQUIRE(!ec);
             REQUIRE(n == bytes_transferred);
         };
@@ -65,10 +67,10 @@ TEST_CASE("async_read", "[test][mock_sock]")
     }
 }
 
-TEST_CASE("async_write_some", "[test][mock_sock]")
+TEST_CASE("async_write_some", "[test][MockSock]")
 {
     using buffer = std::vector<char>;
-    using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
+    using tcp_socket = test::MockSock<buffer, asio::io_context::executor_type>;
 
     asio::io_context ctx;
     tcp_socket s{ctx.get_executor()};
@@ -78,7 +80,8 @@ TEST_CASE("async_write_some", "[test][mock_sock]")
 
         const auto n = data.size();
 
-        auto handler = [n](auto ec, auto bytes_transferred) {
+        auto handler = [n](boost::system::error_code ec,
+                           std::size_t bytes_transferred) {
             REQUIRE(!ec);
             REQUIRE(n == bytes_transferred);
         };
@@ -89,10 +92,10 @@ TEST_CASE("async_write_some", "[test][mock_sock]")
     }
 }
 
-TEST_CASE("async_write", "[test][mock_sock]")
+TEST_CASE("async_write", "[test][MockSock]")
 {
     using buffer = std::vector<char>;
-    using tcp_socket = test::mock_sock<buffer, asio::io_context::executor_type>;
+    using tcp_socket = test::MockSock<buffer, asio::io_context::executor_type>;
 
     asio::io_context ctx;
     tcp_socket s{ctx.get_executor()};
@@ -102,7 +105,8 @@ TEST_CASE("async_write", "[test][mock_sock]")
 
         const auto n = data.size();
 
-        auto handler = [n](auto ec, auto bytes_transferred) {
+        auto handler = [n](boost::system::error_code ec,
+                           std::size_t bytes_transferred) {
             REQUIRE(!ec);
             REQUIRE(n == bytes_transferred);
         };
@@ -118,7 +122,7 @@ TEST_CASE("session_ok", "[skye][session]")
     using buffer = std::string;
     using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
     using tcp_socket = default_token::as_default_on_t<
-        test::mock_sock<buffer, asio::io_context::executor_type>>;
+        test::MockSock<buffer, asio::io_context::executor_type>>;
 
     asio::io_context ctx;
     tcp_socket s{ctx.get_executor()};
@@ -126,7 +130,7 @@ TEST_CASE("session_ok", "[skye][session]")
     const buffer data = "GET / HTTP/1.0\r\n\r\n";
     s.set_rx(data);
 
-    const buffer body = test::make_random_string<buffer>(1024);
+    const auto body = test::make_random_string<buffer>(1024);
 
     int handler_called = 0;
     auto handler = [&body, &handler_called](
@@ -139,8 +143,8 @@ TEST_CASE("session_ok", "[skye][session]")
         co_return res;
     };
 
-    skye::session_metrics metrics;
-    auto reporter = [&metrics](const skye::session_metrics& m) { metrics = m; };
+    skye::SessionMetrics metrics;
+    auto reporter = [&metrics](const skye::SessionMetrics& m) { metrics = m; };
 
     co_spawn(
         ctx.get_executor(), skye::session(s, handler, reporter),
@@ -149,7 +153,7 @@ TEST_CASE("session_ok", "[skye][session]")
     REQUIRE(ctx.run() > 0);
 
     REQUIRE(metrics.num_request == 1);
-    REQUIRE(metrics.bytes_read == data.size());
+    REQUIRE(metrics.bytes_read == static_cast<int>(data.size()));
 
     REQUIRE(s.get_tx().ends_with(body));
     REQUIRE(handler_called == 1);
@@ -160,10 +164,10 @@ TEST_CASE("session_error", "[skye][session]")
     using buffer = std::string;
     using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
     using tcp_socket = default_token::as_default_on_t<
-        test::mock_sock<buffer, asio::io_context::executor_type>>;
+        test::MockSock<buffer, asio::io_context::executor_type>>;
 
     asio::io_context ctx;
-    tcp_socket s(ctx.get_executor());
+    tcp_socket s{ctx.get_executor()};
 
     const buffer data = "GET / xxx HTTP/1.0\r\n\r\n";
     s.set_rx(data);
@@ -175,8 +179,8 @@ TEST_CASE("session_error", "[skye][session]")
         co_return skye::response{http::status::ok, req.version()};
     };
 
-    skye::session_metrics metrics;
-    auto reporter = [&metrics](const skye::session_metrics& m) { metrics = m; };
+    skye::SessionMetrics metrics;
+    auto reporter = [&metrics](const skye::SessionMetrics& m) { metrics = m; };
 
     co_spawn(ctx, skye::session(s, handler, reporter), [](auto ptr) {
         REQUIRE(!ptr);
@@ -193,12 +197,12 @@ TEST_CASE("session_error_post", "[skye][session]")
     using buffer = std::string;
     using default_token = asio::as_tuple_t<asio::use_awaitable_t<>>;
     using tcp_socket = default_token::as_default_on_t<
-        test::mock_sock<buffer, asio::io_context::executor_type>>;
+        test::MockSock<buffer, asio::io_context::executor_type>>;
 
     asio::io_context ctx;
-    tcp_socket s(ctx.get_executor());
+    tcp_socket s{ctx.get_executor()};
     {
-        const buffer body = test::make_random_string<buffer>(1024 * 1024 + 1);
+        const auto body = test::make_random_string<buffer>(1024 * 1024 + 1);
         const buffer data = "POST / HTTP/1.0\r\n"
                             "Content-Type: application/octet-stream\r\n"
                             "Content-Length: " +
@@ -213,8 +217,8 @@ TEST_CASE("session_error_post", "[skye][session]")
     };
 
     bool reporter_called = false;
-    skye::session_metrics metrics;
-    auto reporter = [&](const skye::session_metrics& m) {
+    skye::SessionMetrics metrics;
+    auto reporter = [&](const skye::SessionMetrics& m) {
         reporter_called = true;
         metrics = m;
     };

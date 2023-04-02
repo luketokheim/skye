@@ -9,40 +9,52 @@ class SkyeConan(ConanFile):
     license = "BSL-1.0"
 
     settings = "os", "arch", "compiler", "build_type"
-    generators = "CMakeToolchain", "CMakeDeps"
-    exports_sources = "CMakeLists.txt", "include/*", "examples/*", "tests/*", "bench/*"
+    generators = "CMakeToolchain", "CMakeDeps", "VirtualRunEnv"
+    exports_sources = "CMakeLists.txt", "cmake/*", "include/*"
+    no_copy_source = True
+
     options = {
+        "developer_mode": [True, False],
         "enable_arch": [True, False],
         "enable_benchmarks": [True, False],
         "enable_io_uring": [True, False]
     }
     default_options = {
+        "developer_mode": False,
         "enable_arch": False,
         "enable_benchmarks": False,
         "enable_io_uring": False
     }
 
     def requirements(self):
-        self.test_requires("boost/1.81.0", options={"header_only": True})
+        self.requires("boost/1.81.0", options={"header_only": True})
+        self.requires("fmt/9.1.0")
 
-        self.test_requires("fmt/9.1.0")
-
-        self.test_requires("sqlite3/3.41.1")
-
-        self.test_requires("catch2/3.3.2")
+    def build_requirements(self):
+        if not self.options.developer_mode:
+            return
 
         if self.options.enable_benchmarks:
             self.test_requires("benchmark/1.7.1")
+
+        if not self.conf.get("tools.build:skip_test", default=False):
+            self.test_requires("catch2/3.3.2")
+
+        self.test_requires("sqlite3/3.41.1")
 
     def layout(self):
         cmake_layout(self)
 
     def build(self):
-        variables = {
-            "ENABLE_ARCH": self.options.enable_arch,
-            "ENABLE_BENCHMARKS": self.options.enable_benchmarks,
-            "ENABLE_IO_URING": self.options.enable_io_uring
-        }
+        variables = dict()
+        if self.options.developer_mode:
+            variables["skye_DEVELOPER_MODE"] = True
+        if self.options.enable_arch:
+            variables["ENABLE_ARCH"] = True
+        if self.options.enable_benchmarks:
+            variables["ENABLE_BENCHMARKS"] = True
+        if self.options.enable_io_uring:
+            variables["ENABLE_IO_URING"] = True
 
         cmake = CMake(self)
         cmake.configure(variables=variables)

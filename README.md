@@ -1,8 +1,6 @@
 # Skye
 
-[![sanitizer](https://github.com/luketokheim/skye/actions/workflows/sanitizer.yaml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/sanitizer.yaml)
-[![test](https://github.com/luketokheim/skye/actions/workflows/test.yaml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/test.yaml)
-[![tidy](https://github.com/luketokheim/skye/actions/workflows/tidy.yaml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/tidy.yaml)
+[![Continuous Integration](https://github.com/luketokheim/skye/actions/workflows/ci.yml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/ci.yml)
 
 Skye is an HTTP server framework for C++20. Build resource friendly web services
 for the cloud.
@@ -145,11 +143,19 @@ Kohlhoff.
 - [Coroutines](https://en.cppreference.com/w/cpp/language/coroutines) support from a modern compiler
 - [Asio](https://think-async.com/Asio/) for network I/O
 - [Boost.Beast](https://github.com/boostorg/beast) to parse HTTP requests and form responses
-- [Catch2](https://github.com/catchorg/Catch2) to run tests for continuous integration
 
-For production use I recommend using io_uring (liburing-dev) on Linux if available. Enable it with
-the `ENABLE_IO_URING` CMake option. The Docker and Continuous Deployment (CD) builds do not
-install that library to maximize compatibility.
+And some optional requirements.
+
+- [Fmt](https://github.com/fmtlib/fmt) is used is some example apps
+- [SQLite](https://sqlite.org/) for example database app
+- [Catch2](https://github.com/catchorg/Catch2) to run tests for continuous integration
+- [Benchmark](https://github.com/google/benchmark) to run microbenchmarks
+- [liburing](https://github.com/axboe/liburing) to use io_uring on Linux
+
+For production use I recommend using io_uring (liburing-dev) on Linux if
+available. Enable it with the `ENABLE_IO_URING` CMake option. The Docker and
+Continuous Deployment (CD) builds do not install that library to maximize
+compatibility.
 
 Cloud Run [second generation](https://cloud.google.com/run/docs/about-execution-environments)
 execution environment supports io_uring but the managed container runtimes on
@@ -166,14 +172,7 @@ The library is header only. To build examples and tests, create a build folder
 and install dependencies with the package manager.
 
 ```console
-conan install . --build=missing
-```
-
-Use the toolchain file created by the package manager so cmake can locate
-libraries with [find_package](https://cmake.org/cmake/help/latest/command/find_package.html).
-
-```console
-conan build .
+conan build . --build=missing -o developer_mode=True
 ```
 
 Run tests.
@@ -183,14 +182,17 @@ cd build/Release
 ctest -C Release
 ```
 
+See the [BUILDING](BUILDING.md) document for vanilla CMake usage and other
+build options.
+
 ## Compilers
 
 This project requires C++20 support for coroutines. It runs on Windows, macOS,
 and Linux.
 
 - Microsoft Visual Studio 2022
-- Clang 13
-- G++ 10
+- Clang 14
+- G++ 11
 
 ## Why?
 
@@ -214,3 +216,7 @@ Do not use this framework to:
 
 - Make a general purpose web server or serve files. Use nginx!
 - Make a public facing web server on the internet. No TLS, no timeouts, HTTP/1 only.
+
+## Contributing
+
+See the [CONTRIBUTING](CONTRIBUTING.md) document.

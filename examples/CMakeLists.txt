@@ -1,26 +1,59 @@
-add_executable(skye-hello hello.cpp)
-target_link_libraries(skye-hello PRIVATE skye::skye)
+cmake_minimum_required(VERSION 3.14)
 
-install(TARGETS skye-hello RUNTIME)
+project(skyeExamples LANGUAGES CXX)
+
+include(../cmake/project-is-top-level.cmake)
+include(../cmake/folders.cmake)
+
+# ---- Dependencies ----
+
+if(PROJECT_IS_TOP_LEVEL)
+  find_package(skye REQUIRED)
+endif()
+
+find_package(fmt QUIET)
+find_package(SQLite3 QUIET)
+
+# ---- Examples ----
+
+add_executable(skye-hello hello.cpp)
+target_link_libraries(
+    skye-hello PRIVATE
+    skye::skye
+)
+install(TARGETS skye-hello RUNTIME COMPONENT skyeExamples_Runtime)
 
 # Echo and Producer examples require fmt
 if(fmt_FOUND)
     add_executable(skye-echo echo.cpp)
-    target_link_libraries(skye-echo PRIVATE skye::skye)
-
-    install(TARGETS skye-echo RUNTIME)
+    target_link_libraries(
+        skye-echo PRIVATE
+        skye::skye
+        fmt::fmt
+    )
+    install(TARGETS skye-echo RUNTIME COMPONENT skyeExamples_Runtime)
 
     add_executable(skye-producer producer.cpp)
-    target_link_libraries(skye-producer PRIVATE skye::skye)
-
-    install(TARGETS skye-producer RUNTIME)
+    target_link_libraries(
+        skye-producer PRIVATE
+        skye::skye
+        fmt::fmt
+    )
+    install(TARGETS skye-producer RUNTIME COMPONENT skyeExamples_Runtime)
 endif()
 
-# Database example requires sqlite3 and fmt
-find_package(SQLite3 QUIET)
-if(SQLite3_FOUND AND fmt_FOUND)
+# Database example requires fmt and sqlite3
+if(fmt_FOUND AND SQLite3_FOUND)
     add_executable(skye-database database.cpp)
-    target_link_libraries(skye-database PRIVATE skye::skye SQLite::SQLite3)
-
-    install(TARGETS skye-database RUNTIME)
+    target_link_libraries(
+        skye-database PRIVATE
+        skye::skye
+        fmt::fmt
+        SQLite::SQLite3
+    )
+    install(TARGETS skye-database RUNTIME COMPONENT skyeExamples_Runtime)
 endif()
+
+# ---- End-of-file commands ----
+
+add_folders(Examples)

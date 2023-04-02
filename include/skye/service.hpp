@@ -134,7 +134,7 @@ void run(int port, Handler handler, Reporter reporter = {})
     // SIGTERM is sent by Docker to ask us to stop (politely)
     // SIGINT handles local Ctrl+C in a terminal
     asio::signal_set signals{ioc, SIGINT, SIGTERM};
-    signals.async_wait([&ioc](auto ec, auto sig) { ioc.stop(); });
+    signals.async_wait([&ioc](auto /*ec*/, auto /*sig*/) { ioc.stop(); });
 
     // Run event processing loop
     ioc.run();
