@@ -42,7 +42,7 @@ jobs:
       run: |
         pipx install conan
         bash < .github/scripts/conan-profile.sh
-        conan install . -b missing
+        conan install . -b missing -s build_type=Debug -o developer_mode=True
 
     - name: Configure
       run: cmake --preset=ci-coverage
@@ -78,7 +78,7 @@ jobs:
       run: |
         pipx install conan
         bash < .github/scripts/conan-profile.sh
-        conan install . -b missing
+        conan install . -b missing -s build_type=Debug -o developer_mode=True
 
     - name: Configure
       run: cmake --preset=ci-sanitize
@@ -123,7 +123,7 @@ jobs:
       run: |
         pipx install conan
         bash < .github/scripts/conan-profile.sh
-        conan install . -b missing
+        conan install . -b missing -s build_type=Debug -o developer_mode=True
 
     - name: Setup MultiToolTask
       if: matrix.os == 'windows-2022'
