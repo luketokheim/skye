@@ -17,6 +17,7 @@ prefix/
 
 # Do not check in
 CMakeLists.txt.user
+CMakeSettings.json
 CMakeUserPresets.json
 
 # Example app database
