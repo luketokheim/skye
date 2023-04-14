@@ -168,8 +168,8 @@ Continuous Integration (CI) and to build Docker images.
 
 ## Build
 
-The library is header only. To build examples and tests, create a build folder
-and install dependencies with the package manager.
+The library is header only. Use conan to download dependencies and build
+examples and unit tests.
 
 ```console
 conan build . --build=missing -o developer_mode=True

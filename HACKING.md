@@ -14,6 +14,10 @@ option makes tests and other developer targets and options available. Not
 enabling this option means that you are a consumer of this project and thus you
 have no need for these targets and options.
 
+The following instructions for developer mode are somewhat focused on Linux
+and macOS. They may require a few tweaks for Windows with Visual Studio on your
+system.
+
 Developer mode is always set to on in CI workflows.
 
 ### Presets
@@ -43,7 +47,8 @@ the project:
       "binaryDir": "${sourceDir}/build/dev",
       "inherits": ["dev-mode", "conan", "ci-<os>"],
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/Debug/generators/conan_toolchain.cmake"
       }
     }
   ],
@@ -68,7 +73,7 @@ the project:
 ```
 
 You should replace `<os>` in your newly created presets file with the name of
-the operating system you have, which may be `win64`, `linux` or `darwin`. You
+the operating system you have, which may be `win`, `linux` or `darwin`. You
 can see what these correspond to in the
 [`CMakePresets.json`](CMakePresets.json) file.
 
@@ -84,7 +89,7 @@ download the dependencies and generate the necessary CMake files by running
 this command in the project root:
 
 ```sh
-conan install . -s build_type=Debug -b missing
+conan install . -b missing -s build_type=Debug -o developer_mode=True
 ```
 
 Note that if your conan profile does not specify the same compiler, standard
