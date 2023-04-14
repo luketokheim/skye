@@ -123,7 +123,7 @@ jobs:
     - name: Install dependencies
       shell: bash
       run: |
-        pipx install conan==2.0.2
+        pipx install conan
         bash < .github/scripts/conan-profile.sh
         conan install . -b missing -o developer_mode=True
 
