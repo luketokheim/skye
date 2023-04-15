@@ -105,3 +105,27 @@ install rules.
 [1]: https://cmake.org/download/
 [2]: https://cmake.org/cmake/help/latest/manual/cmake.1.html#install-a-project
 [3]: https://cmake.org/cmake/help/latest/command/find_package.html
+
+
+## Conan package
+
+This project includes a recipe that can be used to a conan package. Here is the
+command to create a local package that you can use from your projects.
+
+```console
+conan create . --build=missing --version 0.12.0
+```
+
+Example `conanfile.txt` file for a project that uses this library:
+
+```yaml
+[requires]
+skye/0.12.0
+
+[generators]
+CMakeDeps
+CMakeToolchain
+
+[layout]
+cmake_layout
+```
