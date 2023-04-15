@@ -27,7 +27,9 @@ class SkyeConan(ConanFile):
     }
 
     def requirements(self):
-        self.requires("boost/1.81.0", options={"header_only": True})
+        self.requires("boost/[>=1.79]",
+                      options={"header_only": True},
+                      transitive_headers=True)
         self.requires("fmt/9.1.0")
 
     def build_requirements(self):

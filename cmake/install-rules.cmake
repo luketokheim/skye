@@ -1,6 +1,6 @@
 if(PROJECT_IS_TOP_LEVEL)
   set(
-      CMAKE_INSTALL_INCLUDEDIR "include/skye-${PROJECT_VERSION}"
+      CMAKE_INSTALL_INCLUDEDIR "include"
       CACHE PATH ""
   )
 endif()

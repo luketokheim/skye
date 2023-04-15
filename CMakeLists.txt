@@ -4,7 +4,7 @@ include(cmake/prelude.cmake)
 
 project(
     skye
-    VERSION 0.11.0
+    VERSION 0.12.0
     DESCRIPTION "Skye is an HTTP server framework for C++20"
     HOMEPAGE_URL "https://github.com/luketokheim/skye"
     LANGUAGES CXX
