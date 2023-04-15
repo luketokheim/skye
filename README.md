@@ -1,6 +1,6 @@
 # Skye
 
-[![Continuous Integration](https://github.com/luketokheim/skye/actions/workflows/ci.yml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/ci.yml)
+[![CI](https://github.com/luketokheim/skye/actions/workflows/ci.yml/badge.svg)](https://github.com/luketokheim/skye/actions/workflows/ci.yml)
 
 Skye is an HTTP server framework for C++20. Build resource friendly web services
 for the cloud.

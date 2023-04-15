@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: CI
 
 on:
   push:
@@ -28,10 +28,6 @@ jobs:
     needs: [lint]
 
     runs-on: ubuntu-22.04
-
-    env:
-      CC: gcc-12
-      CXX: g++-12
 
     if: github.repository_owner == 'luketokheim'
 
