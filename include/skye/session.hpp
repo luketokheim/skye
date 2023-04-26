@@ -1,4 +1,10 @@
-#pragma once
+//
+// skye/session.hpp
+//
+// Copyright 2023 Luke Tokheim
+//
+#ifndef SKYE_SESSION_HPP_
+#define SKYE_SESSION_HPP_
 
 #include <skye/types.hpp>
 
@@ -108,3 +114,5 @@ session(AsyncStream stream, Handler handler, Reporter reporter)
 }
 
 } // namespace skye
+
+#endif // SKYE_SESSION_HPP_

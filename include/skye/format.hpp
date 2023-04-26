@@ -1,4 +1,10 @@
-#pragma once
+//
+// skye/format.hpp
+//
+// Copyright 2023 Luke Tokheim
+//
+#ifndef SKYE_FORMAT_HPP_
+#define SKYE_FORMAT_HPP_
 
 #include <skye/types.hpp>
 
@@ -42,3 +48,5 @@ struct fmt::formatter<skye::SessionMetrics> {
             std::chrono::duration<double>(m.end_time - m.start_time).count());
     }
 };
+
+#endif // SKYE_FORMAT_HPP_

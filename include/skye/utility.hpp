@@ -1,4 +1,10 @@
-#pragma once
+//
+// skye/utility.hpp
+//
+// Copyright 2023 Luke Tokheim
+//
+#ifndef SKYE_UTILITY_HPP_
+#define SKYE_UTILITY_HPP_
 
 #include <charconv>
 #include <cstdlib>
@@ -14,8 +20,8 @@ namespace skye {
   Cloud Run sets the PORT environment variable.
   https://cloud.google.com/run/docs/container-contract#port
 
-  This function clearly does not need to be inlined but it is the only non
-  template function in the whole library.
+  This function clearly does not need to be inlined but make it so since it is
+  the only non template function in the whole library.
  */
 inline int getenv_port()
 {
@@ -49,3 +55,5 @@ inline int getenv_port()
 }
 
 } // namespace skye
+
+#endif // SKYE_UTILITY_HPP_

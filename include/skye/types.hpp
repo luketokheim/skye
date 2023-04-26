@@ -1,4 +1,10 @@
-#pragma once
+//
+// skye/types.hpp
+//
+// Copyright 2023 Luke Tokheim
+//
+#ifndef SKYE_TYPES_HPP_
+#define SKYE_TYPES_HPP_
 
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
@@ -56,7 +62,7 @@ using response = http::response<http::string_body>;
   collection is enabled at compile time then the metrics are collected in the
   HTTP session loop.
 
-  One session_stats object is intended to represent the aggregate data from one
+  One SessionMetrics object is intended to represent the aggregate data from one
   session loop. The reporter function object is called once per session.
  */
 struct SessionMetrics {
@@ -69,3 +75,5 @@ struct SessionMetrics {
 };
 
 } // namespace skye
+
+#endif // SKYE_TYPES_HPP_

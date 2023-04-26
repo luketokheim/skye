@@ -1,4 +1,10 @@
-#pragma once
+//
+// skye/service.hpp
+//
+// Copyright 2023 Luke Tokheim
+//
+#ifndef SKYE_SERVICE_HPP_
+#define SKYE_SERVICE_HPP_
 
 #include <skye/session.hpp>
 #include <skye/types.hpp>
@@ -156,3 +162,5 @@ auto make_co_handler(ExecutionContext& ctx, Handler handler)
 }
 
 } // namespace skye
+
+#endif // SKYE_SERVICE_HPP_
