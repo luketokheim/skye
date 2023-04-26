@@ -1,4 +1,14 @@
-#pragma once
+//
+// skye/format.hpp
+//
+// Copyright 2023 Luke Tokheim
+//
+/**
+  Use the fmt library to convert structs to JSON strings. Allow the user to
+  choose whether to introduce a dependency on fmt.
+*/
+#ifndef SKYE_FORMAT_HPP_
+#define SKYE_FORMAT_HPP_
 
 #include <skye/types.hpp>
 
@@ -7,8 +17,8 @@
 #include <chrono>
 
 /**
-  Convert session_metrics to a JSON string. Specialize the formatter struct so
-  session_metrics works with fmt::print.
+  Convert SessionMetrics to a JSON string. Specialize the formatter struct so
+  SessionMetrics works with fmt::print.
 
   https://fmt.dev/latest/api.html#formatting-user-defined-types
 
@@ -18,12 +28,12 @@
   Example usage:
 
   // Print to stdout
-  session_metrics metrics;
+  SessionMetrics metrics;
   fmt::print("{}\n", metrics);
 
   // Or convert to string
   std::string str = fmt::format("{}", metrics);
- */
+*/
 template <>
 struct fmt::formatter<skye::SessionMetrics> {
     constexpr static auto parse(format_parse_context& ctx)
@@ -42,3 +52,5 @@ struct fmt::formatter<skye::SessionMetrics> {
             std::chrono::duration<double>(m.end_time - m.start_time).count());
     }
 };
+
+#endif // SKYE_FORMAT_HPP_
