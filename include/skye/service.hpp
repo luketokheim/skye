@@ -56,9 +56,8 @@ namespace detail {
     co_spawn session(stream)
   }
 */
-template <typename Acceptor, typename Handler, typename Reporter>
 asio::awaitable<void>
-accept(Acceptor acceptor, Handler handler, Reporter reporter)
+accept(auto acceptor, Handler auto handler, Reporter auto reporter)
 {
     using tcp = asio::ip::tcp;
 
@@ -91,8 +90,8 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
   Bind and listen for incoming connections on the specified port on all
   IP addresses.
 */
-template <typename Handler, typename Reporter>
-asio::awaitable<void> listen(int port, Handler handler, Reporter reporter)
+asio::awaitable<void>
+listen(int port, Handler auto handler, Reporter auto reporter)
 {
     // Use a custom completion token for async operations on the acceptor and
     // its incoming socket connections.
@@ -121,7 +120,7 @@ asio::awaitable<void> listen(int port, Handler handler, Reporter reporter)
   The optional reporter function object is called once per socket session which
   may span multiple requests.
 */
-template <typename ExecutionContext, typename Handler, typename Reporter = bool>
+template <typename ExecutionContext, Handler Handler, Reporter Reporter = bool>
 void async_run(
     ExecutionContext& ctx, int port, Handler handler, Reporter reporter = {})
 {
@@ -150,7 +149,7 @@ void async_run(
   The optional reporter function object is called once per socket session which
   may span multiple requests.
 */
-template <typename Handler, typename Reporter = bool>
+template <Handler Handler, Reporter Reporter = bool>
 void run(int port, Handler handler, Reporter reporter = {})
 {
     // Concurrency hint to asio that run is single threaded
@@ -174,7 +173,7 @@ void run(int port, Handler handler, Reporter reporter = {})
   mechanism to use asio::thread_pool to run the handlers separately from the
   main server event loop.
 */
-template <typename ExecutionContext, typename Handler>
+template <typename ExecutionContext, Handler Handler>
 auto make_co_handler(ExecutionContext& ctx, Handler handler)
 {
     auto ex = ctx.get_executor();

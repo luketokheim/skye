@@ -32,17 +32,32 @@ namespace asio = boost::asio;
 // 1 MB request limit
 constexpr auto kRequestSizeLimit = 1000 * 1000;
 
+/**
+  Inherit requirements from Boost.Beast for a TCP socket stream.
+*/
 template <typename T>
 concept AsyncStream = boost::beast::is_async_stream<T>::value;
 
+/**
+  Handler function object must be:
+  - CopyConstructible
+  - Must be callable with a request and return an awaitable wrapped response
+*/
 template <typename T>
-concept Handler = std::is_copy_constructible_v<T> &&
+concept Handler = std::copy_constructible<T> &&
                   std::is_invocable_r_v<asio::awaitable<response>, T, request>;
 
+/**
+  Reporter function object must be:
+  - CopyConstructible
+  - Must be callable with a SessionMetrics object OR be an integral type
+
+  If Reporter is an integral type disable metrics at compile time.
+*/
 template <typename T>
-concept Reporter = std::is_copy_constructible_v<T> &&
-                   (std::is_same_v<T, bool> ||
-                    std::is_invocable_r_v<void, T, const SessionMetrics&>);
+concept Reporter = std::copy_constructible<T> &&
+                   (std::integral<T> ||
+                    std::invocable<T, const SessionMetrics&>);
 
 /**
   The HTTP session loop. In the library, a session is multiple HTTP/1.1 requests
@@ -67,7 +82,7 @@ asio::awaitable<void>
 session(AsyncStream auto stream, Handler auto handler, Reporter auto reporter)
 {
     constexpr bool kEnableMetrics =
-        std::is_invocable_r_v<void, decltype(reporter), const SessionMetrics&>;
+        std::invocable<decltype(reporter), const SessionMetrics&>;
 
     SessionMetrics metrics;
     if constexpr (kEnableMetrics) {
