@@ -1,16 +1,18 @@
 openapi: 3.0.3
 info:
   title: Echo Server
-  description: Example app for the Skye HTTP server framework.
+  description: Example app for the Skye HTTP server framework
   contact:
     name: GitHub Repo
     url: https://github.com/luketokheim/skye
-  version: 0.9.0
+  version: 0.12.0
 servers:
   - url: http://127.0.0.1:8080
-    description: Echo server running on the local host
+    description: Example server running on the local host
+  - url: https://skye-server.web.app
+    description: Example server running on Google Cloud Platform
 paths:
-  /:
+  /echo:
     get:
       summary: Print the request target
       operationId: echoTarget

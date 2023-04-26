@@ -1,0 +1,33 @@
+openapi: 3.0.3
+info:
+  title: Hello Server
+  description: Example app for the Skye HTTP server framework
+  contact:
+    name: GitHub Repo
+    url: https://github.com/luketokheim/skye
+  version: 0.12.0
+servers:
+  - url: http://127.0.0.1:8080
+    description: Example server running on the local host
+  - url: https://skye-server.web.app
+    description: Example server running on Google Cloud Platform
+paths:
+  /hello:
+    get:
+      summary: Get one hello message
+      operationId: getHelloMessage
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hello'
+components:
+  schemas:
+    Hello:
+      type: object
+      properties:
+        hello:
+          type: string
+          example: world

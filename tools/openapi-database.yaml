@@ -1,0 +1,36 @@
+openapi: 3.0.3
+info:
+  title: Database Server
+  description: Example app for the Skye HTTP server framework
+  contact:
+    name: GitHub Repo
+    url: https://github.com/luketokheim/skye
+  version: 0.12.0
+servers:
+  - url: http://127.0.0.1:8080
+    description: Example server running on the local host
+  - url: https://skye-server.web.app
+    description: Example server running on Google Cloud Platform
+paths:
+  /db:
+    get:
+      summary: Get one randomly selected model
+      operationId: getRandomModel
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Model'
+components:
+  schemas:
+    Model:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        randomNumber:
+          type: integer
+          example: 789
