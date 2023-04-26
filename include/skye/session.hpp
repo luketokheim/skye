@@ -43,9 +43,11 @@ concept AsyncStream = boost::beast::is_async_stream<T>::value;
   - CopyConstructible
   - Must be callable with a request and return an awaitable wrapped response
 */
+// clang-format off
 template <typename T>
 concept Handler = std::copy_constructible<T> &&
-                  std::is_invocable_r_v<asio::awaitable<response>, T, request>;
+    std::is_invocable_r_v<asio::awaitable<response>, T, request>;
+// clang-format on
 
 /**
   Reporter function object must be:
@@ -54,10 +56,11 @@ concept Handler = std::copy_constructible<T> &&
 
   If Reporter is an integral type disable metrics at compile time.
 */
+// clang-format off
 template <typename T>
 concept Reporter = std::copy_constructible<T> &&
-                   (std::integral<T> ||
-                    std::invocable<T, const SessionMetrics&>);
+    (std::integral<T> || std::invocable<T, const SessionMetrics&>);
+// clang-format on
 
 /**
   The HTTP session loop. In the library, a session is multiple HTTP/1.1 requests
