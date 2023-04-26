@@ -3,6 +3,10 @@
 //
 // Copyright 2023 Luke Tokheim
 //
+/**
+  Public types used in the skye framework. Allow the user to just pull in the
+  classes required to read request data and generate a response.
+*/
 #ifndef SKYE_TYPES_HPP_
 #define SKYE_TYPES_HPP_
 
@@ -17,7 +21,7 @@ namespace skye {
   The framework uses Boost.Beast types directly in its public interface. The
   intent is to allow users to do simple things easily while still offering
   access to more advanced functionality.
- */
+*/
 namespace http = boost::beast::http;
 
 /**
@@ -32,7 +36,7 @@ namespace http = boost::beast::http;
 
   Use `http::string_body` to make it simple for users to read the entire body as
   a `std::string`.
- */
+*/
 using request = http::request<http::string_body>;
 
 /**
@@ -47,7 +51,7 @@ using request = http::request<http::string_body>;
 
   Use `http::string_body` to make it simple for users to write the entire body
   as a `std::string`.
- */
+*/
 using response = http::response<http::string_body>;
 
 /**
@@ -64,7 +68,7 @@ using response = http::response<http::string_body>;
 
   One SessionMetrics object is intended to represent the aggregate data from one
   session loop. The reporter function object is called once per session.
- */
+*/
 struct SessionMetrics {
     int fd{};
     int num_request{};

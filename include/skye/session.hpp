@@ -3,6 +3,13 @@
 //
 // Copyright 2023 Luke Tokheim
 //
+/**
+  In the skye framework, an HTTP session is multiple requests over one TCP
+  socket connection. A session is a coroutine that runs in a keep alive loop.
+
+  Users will not generally directly call the session function but instead use
+  run or async_run from the service.hpp header.
+*/
 #ifndef SKYE_SESSION_HPP_
 #define SKYE_SESSION_HPP_
 
@@ -14,6 +21,7 @@
 #include <boost/beast/http/write.hpp>
 
 #include <chrono>
+#include <concepts>
 #include <functional>
 #include <type_traits>
 
@@ -24,32 +32,42 @@ namespace asio = boost::asio;
 // 1 MB request limit
 constexpr auto kRequestSizeLimit = 1000 * 1000;
 
+template <typename T>
+concept AsyncStream = boost::beast::is_async_stream<T>::value;
+
+template <typename T>
+concept Handler = std::is_copy_constructible_v<T> &&
+                  std::is_invocable_r_v<asio::awaitable<response>, T, request>;
+
+template <typename T>
+concept Reporter = std::is_copy_constructible_v<T> &&
+                   (std::is_same_v<T, bool> ||
+                    std::is_invocable_r_v<void, T, const SessionMetrics&>);
+
 /**
   The HTTP session loop. In the library, a session is multiple HTTP/1.1 requests
   with implicit keep alive over one TCP socket stream. The requests are
   serialized one after the other.
 
   loop {
-      request = read(stream)
+    request = read(stream)
 
-      response = handler(request)
+    response = handler(request)
 
-      write(stream, response)
+    write(stream, response)
   }
 
   If the user supplies a reporter function object then that is called once after
   the request loop with the aggregate metrics.
- */
-template <typename AsyncStream, typename Handler, typename Reporter>
-asio::awaitable<void>
-session(AsyncStream stream, Handler handler, Reporter reporter)
-{
-    static_assert(
-        std::is_invocable_r_v<asio::awaitable<response>, Handler, request>,
-        "Handler type requirements not met");
 
+  The session owns the socket stream. The session owns a copy of the handler
+  function and a copy of the reporter function.
+*/
+asio::awaitable<void>
+session(AsyncStream auto stream, Handler auto handler, Reporter auto reporter)
+{
     constexpr bool kEnableMetrics =
-        std::is_invocable_r_v<void, Reporter, const SessionMetrics&>;
+        std::is_invocable_r_v<void, decltype(reporter), const SessionMetrics&>;
 
     SessionMetrics metrics;
     if constexpr (kEnableMetrics) {
@@ -67,7 +85,7 @@ session(AsyncStream stream, Handler handler, Reporter reporter)
                 co_await http::async_read(stream, buffer, req);
 
             if (ec == http::error::end_of_stream) {
-                stream.shutdown(AsyncStream::shutdown_send, ec);
+                stream.shutdown(decltype(stream)::shutdown_send, ec);
                 break;
             }
 
@@ -100,7 +118,7 @@ session(AsyncStream stream, Handler handler, Reporter reporter)
         }
 
         if (res.need_eof()) {
-            stream.shutdown(AsyncStream::shutdown_send, ec);
+            stream.shutdown(decltype(stream)::shutdown_send, ec);
             break;
         }
     }

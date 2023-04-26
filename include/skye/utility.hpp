@@ -3,6 +3,10 @@
 //
 // Copyright 2023 Luke Tokheim
 //
+/**
+  Utility functions used in the example apps and to help users make their own
+  container based services.
+*/
 #ifndef SKYE_UTILITY_HPP_
 #define SKYE_UTILITY_HPP_
 

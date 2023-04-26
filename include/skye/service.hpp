@@ -3,6 +3,24 @@
 //
 // Copyright 2023 Luke Tokheim
 //
+/**
+  Entry point for a skye HTTP server. User calls run or async_run with their
+  handler function.
+
+  Usage:
+
+  // A handler is a function object that takes a request and returns a response.
+  auto handler = [](request req) -> asio::awaitable<response> {
+    response res{http::status::ok, req.version()};
+    res.set(http::field::content_type, "text/plain");
+    res.body() = "Hello World!";
+
+    co_return res;
+  };
+
+  // Listen on port 8080 and route all HTTP requests to the handler.
+  run(8080, handler);
+*/
 #ifndef SKYE_SERVICE_HPP_
 #define SKYE_SERVICE_HPP_
 
@@ -27,17 +45,17 @@ namespace asio = boost::asio;
 namespace detail {
 
 /**
-  The service connection accept loop. Launch a coroutine for each incoming
-  socket stream connection.
+  The service connection accept loop. Spawn a coroutine for each incoming socket
+  stream connection.
 
   loop {
-      // Incoming socket connection
-      stream = accept()
+    // Incoming socket connection
+    stream = accept()
 
-      // HTTP request/response loop
-      co_spawn session(stream)
+    // HTTP request/response loop
+    co_spawn session(stream)
   }
- */
+*/
 template <typename Acceptor, typename Handler, typename Reporter>
 asio::awaitable<void>
 accept(Acceptor acceptor, Handler handler, Reporter reporter)
@@ -72,7 +90,7 @@ accept(Acceptor acceptor, Handler handler, Reporter reporter)
 /**
   Bind and listen for incoming connections on the specified port on all
   IP addresses.
- */
+*/
 template <typename Handler, typename Reporter>
 asio::awaitable<void> listen(int port, Handler handler, Reporter reporter)
 {
@@ -102,7 +120,7 @@ asio::awaitable<void> listen(int port, Handler handler, Reporter reporter)
 
   The optional reporter function object is called once per socket session which
   may span multiple requests.
- */
+*/
 template <typename ExecutionContext, typename Handler, typename Reporter = bool>
 void async_run(
     ExecutionContext& ctx, int port, Handler handler, Reporter reporter = {})
@@ -122,11 +140,15 @@ void async_run(
   Run a server. Listen on port and route all requests to the handler function
   object.
 
-  Run event loop "forever" on this thread. Handle signals to stop cleanly.
+  Run event loop "forever" on this thread. Sets a signal handler to stop
+  cleanly.
 
   Opinionated design for use in a container behind load balancer. Listen on
   port until the container runtime sends a SIGTERM signal. Single thread, scale
   service horizontally with more instances.
+
+  The optional reporter function object is called once per socket session which
+  may span multiple requests.
 */
 template <typename Handler, typename Reporter = bool>
 void run(int port, Handler handler, Reporter reporter = {})
@@ -151,7 +173,7 @@ void run(int port, Handler handler, Reporter reporter = {})
   second ExecutionContext not running in the main I/O thread. This is the
   mechanism to use asio::thread_pool to run the handlers separately from the
   main server event loop.
- */
+*/
 template <typename ExecutionContext, typename Handler>
 auto make_co_handler(ExecutionContext& ctx, Handler handler)
 {
